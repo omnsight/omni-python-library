@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -8,9 +8,9 @@ class ArangoData(BaseModel):
     Base class for data stored in ArangoDB, containing system fields.
     """
 
-    id: str = Field(alias="_id", description="ArangoDB document ID")
-    key: str = Field(alias="_key", description="ArangoDB document key")
-    rev: str = Field(alias="_rev", description="ArangoDB document revision")
+    id: Optional[str] = Field(default=None, alias="_id", description="ArangoDB document ID")
+    key: Optional[str] = Field(default=None, alias="_key", description="ArangoDB document key")
+    rev: Optional[str] = Field(default=None, alias="_rev", description="ArangoDB document revision")
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -20,7 +20,7 @@ class Permissive(BaseModel):
     Base class for permission-related fields.
     """
 
-    owner: str = Field(description="Owner of the document")
+    owner: str = Field(default=None, description="Owner of the document")
     read: List[str] = Field(default_factory=list, description="Users/Roles with read access")
     write: List[str] = Field(default_factory=list, description="Users/Roles with write access")
 

@@ -1,42 +1,56 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.cacher import Cacher
-from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.models.common import Permissive
+from omni_python_library.models.osint import (
+    Event,
+    EventMainData,
+    Organization,
+    OrganizationMainData,
+    Person,
+    PersonMainData,
+    Relation,
+    RelationMainData,
+    Source,
+    SourceMainData,
+    Website,
+    WebsiteMainData,
+)
 
 
 class OsintDataUpdater(Cacher):
     def init(self):
         super().init()
 
-    def update_relation(self, id: str, data: Dict[str, Any]) -> Relation:
+    def update_relation(self, id: str, data: Union[RelationMainData, Permissive]) -> Relation:
         col_name, key = ArangoDBClient().parse_id(id)
-        final_data = self._update(col_name, key, data)
+        final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return Relation(**final_data)
 
-    def update_event(self, id: str, data: Dict[str, Any]) -> Event:
+    def update_event(self, id: str, data: Union[EventMainData, Permissive]) -> Event:
         col_name, key = ArangoDBClient().parse_id(id)
-        final_data = self._update(col_name, key, data)
+        final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return Event(**final_data)
 
-    def update_source(self, id: str, data: Dict[str, Any]) -> Source:
+    def update_source(self, id: str, data: Union[SourceMainData, Permissive]) -> Source:
         col_name, key = ArangoDBClient().parse_id(id)
-        final_data = self._update(col_name, key, data)
+        final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return Source(**final_data)
 
-    def update_person(self, id: str, data: Dict[str, Any]) -> Person:
+    def update_person(self, id: str, data: Union[PersonMainData, Permissive]) -> Person:
         col_name, key = ArangoDBClient().parse_id(id)
-        final_data = self._update(col_name, key, data)
+        final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return Person(**final_data)
 
-    def update_organization(self, id: str, data: Dict[str, Any]) -> Organization:
+    def update_organization(self, id: str, data: Union[OrganizationMainData, Permissive]) -> Organization:
         col_name, key = ArangoDBClient().parse_id(id)
-        final_data = self._update(col_name, key, data)
+        final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return Organization(**final_data)
 
-    def update_website(self, id: str, data: Dict[str, Any]) -> Website:
+    def update_website(self, id: str, data: Union[WebsiteMainData, Permissive]) -> Website:
         col_name, key = ArangoDBClient().parse_id(id)
-        final_data = self._update(col_name, key, data)
+        final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return Website(**final_data)
 
     def _update(self, col_name: str, key: str, data: Dict[str, Any]) -> Any:

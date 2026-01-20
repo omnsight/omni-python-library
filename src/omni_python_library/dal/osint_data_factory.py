@@ -3,14 +3,27 @@ from typing import Any, Optional, Type, Union
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.openai import OpenAIClient
 from omni_python_library.dal.cacher import Cacher
-from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.models.osint import (
+    Event,
+    EventMainData,
+    Organization,
+    OrganizationMainData,
+    Person,
+    PersonMainData,
+    Relation,
+    RelationMainData,
+    Source,
+    SourceMainData,
+    Website,
+    WebsiteMainData,
+)
 
 
 class OsintDataFactory(Cacher):
     def init(self):
         super().init()
 
-    def create_relation(self, data: Relation) -> Relation:
+    def create_relation(self, data: RelationMainData, owner: str) -> Relation:
         src_col_name, _ = ArangoDBClient().parse_id(data.from_id)
         to_col_name, _ = ArangoDBClient().parse_id(data.to_id)
         collection = ArangoDBClient().get_edge_collection(
@@ -18,7 +31,10 @@ class OsintDataFactory(Cacher):
             from_coll=src_col_name,
             to_coll=to_col_name,
         )
-        meta = collection.insert(data.model_dump(by_alias=True), return_new=True)
+
+        relation_data = Relation(**data.model_dump(exclude_unset=True), owner=owner)
+        
+        meta = collection.insert(relation_data.model_dump(by_alias=True, exclude_unset=True), return_new=True)
         new_doc = meta["new"]
         new_data = Relation(
             id=new_doc["_id"],
@@ -33,30 +49,54 @@ class OsintDataFactory(Cacher):
 
         return new_data
 
-    def create_event(self, data: Event) -> Event:
+    def create_event(self, data: EventMainData, owner: str) -> Event:
         parts = [data.title, data.description, data.type]
         if data.location:
             parts.append(str(data.location.model_dump()))
         text = " ".join([str(p) for p in parts if p])
-        return self._create(Event, data, text)
 
-    def create_source(self, data: Source) -> Source:
+        return self._create(
+            Event,
+            Event(**data.model_dump(exclude_unset=True), owner=owner),
+            text,
+        )
+
+    def create_source(self, data: SourceMainData, owner: str) -> Source:
         text = f"{data.title} {data.description} {data.name} {data.url}"
-        return self._create(Source, data, text)
 
-    def create_person(self, data: Person) -> Person:
+        return self._create(
+            Source,
+            Source(**data.model_dump(exclude_unset=True), owner=owner),
+            text,
+        )
+
+    def create_person(self, data: PersonMainData, owner: str) -> Person:
         aliases = " ".join(data.aliases) if data.aliases else ""
         text = f"{data.name} {data.role} {data.nationality} {aliases}"
-        return self._create(Person, data, text)
 
-    def create_organization(self, data: Organization) -> Organization:
+        return self._create(
+            Person,
+            Person(**data.model_dump(exclude_unset=True), owner=owner),
+            text,
+        )
+
+    def create_organization(self, data: OrganizationMainData, owner: str) -> Organization:
         tags = " ".join(data.tags) if data.tags else ""
         text = f"{data.name} {data.type} {tags}"
-        return self._create(Organization, data, text)
 
-    def create_website(self, data: Website) -> Website:
+        return self._create(
+            Organization,
+            Organization(**data.model_dump(exclude_unset=True), owner=owner),
+            text,
+        )
+
+    def create_website(self, data: WebsiteMainData, owner: str) -> Website:
         text = f"{data.title} {data.description} {data.url}"
-        return self._create(Website, data, text)
+        return self._create(
+            Website,
+            Website(**data.model_dump(exclude_unset=True), owner=owner),
+            text,
+        )
 
     def _generate_embedding(self, text: Optional[str]):
         client, model = OpenAIClient().get_client("embedding")
@@ -76,13 +116,13 @@ class OsintDataFactory(Cacher):
         data: Union[Event, Source, Person, Organization, Website],
         text: Optional[str] = None,
     ) -> Any:
-        collection = ArangoDBClient().get_collection(model_cls.__name__)
+        collection = ArangoDBClient().get_collection(model_cls.__name__.lower())
 
         # Generate embedding
         embedding = self._generate_embedding(text)
 
         # Insert into Arango
-        doc = data.model_dump(by_alias=True)
+        doc = data.model_dump(by_alias=True, exclude_unset=True)
         if embedding:
             doc["embedding"] = embedding
 
