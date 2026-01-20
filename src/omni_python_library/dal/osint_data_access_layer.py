@@ -8,17 +8,34 @@ from omni_python_library.models.osint import Event, Organization, Person, Relati
 
 
 class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter):
-    def init(
-        self,
-        openai_api_key: Optional[str] = None,
-        openai_base_url: Optional[str] = None,
-        llm_model: str = "text-embedding-3-small",
-    ):
-        super().init(openai_api_key=openai_api_key, openai_base_url=openai_base_url, llm_model=llm_model)
+    def init(self):
+        super().init()
 
     def query(
         self, query_str: str, bind_vars: Optional[Dict[str, Any]] = None
     ) -> List[Union[Relation, Event, Source, Person, Organization, Website]]:
+        """
+        Executes an AQL query and returns a list of strongly-typed OSINT objects.
+
+        :param query_str: The AQL query string. The query must return documents (dicts) compatible with the
+                          OSINT models. Specifically:
+                          - For Relations: The document must contain `_from` and `_to` fields.
+                          - For Entities (Person, Organization, Website, Source, Event): The document must
+                            contain an `_id` field in the format "collection_name/key", where "collection_name"
+                            corresponds to one of the supported types (person, organization, website, source, event).
+
+        Example:
+            query_str = '''
+                FOR doc IN person
+                    FILTER doc.name == @name
+                    RETURN doc
+            '''
+            results = dal.query(query_str, bind_vars={"name": "John Doe"})
+
+        :param bind_vars: Optional dictionary of bind variables to substitute into the query string.
+        :return: A list of mapped objects (Relation, Person, Organization, Website, Source, or Event).
+                 Documents that do not match the expected schema or collection types are skipped.
+        """
         if bind_vars is None:
             bind_vars = {}
         cursor = ArangoDBClient().db.aql.execute(query_str, bind_vars=bind_vars)

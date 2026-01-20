@@ -1,25 +1,14 @@
 from typing import Any, Optional, Type, Union
 
-from openai import OpenAI
-
 from omni_python_library.clients.arangodb import ArangoDBClient
+from omni_python_library.clients.openai import OpenAIClient
 from omni_python_library.dal.cacher import Cacher
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
 
 
 class OsintDataFactory(Cacher):
-    def init(
-        self,
-        openai_api_key: Optional[str] = None,
-        openai_base_url: Optional[str] = None,
-        llm_model: str = "text-embedding-3-small",
-    ):
+    def init(self):
         super().init()
-
-        self._llm_model = llm_model
-        self._openai_client = None
-        if openai_api_key:
-            self._openai_client = OpenAI(api_key=openai_api_key, base_url=openai_base_url)
 
     def create_relation(self, data: Relation) -> Relation:
         src_col_name, _ = ArangoDBClient().parse_id(data.from_id)
@@ -70,11 +59,12 @@ class OsintDataFactory(Cacher):
         return self._create(Website, data, text)
 
     def _generate_embedding(self, text: Optional[str]):
-        if not self._openai_client or not text:
+        client, model = OpenAIClient().get_client("embedding")
+        if not client or not text:
             return None
 
         try:
-            response = self._openai_client.embeddings.create(input=text, model=self._llm_model)
+            response = client.embeddings.create(input=text, model=model)
             return response.data[0].embedding
         except Exception as e:
             print(f"Error generating embedding: {e}")

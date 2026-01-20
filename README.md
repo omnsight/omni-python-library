@@ -6,7 +6,7 @@
 Run unit tests
 
 ```bash
-docker-compose up -d
-python -m unittest discover -s tests
-docker-compose down
+docker compose up -d
+python3 -m pytest
+docker compose down
 ```
