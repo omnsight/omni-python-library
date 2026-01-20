@@ -85,20 +85,45 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
     def _get(
         self, model_cls: Type[Union[Relation, Event, Source, Person, Organization, Website]], id: str
     ) -> Optional[Any]:
-        col_name, key = ArangoDBClient().parse_id(id)
+        doc = self._get_generic(id)
+        if doc:
+            return model_cls(**doc)
+        return None
 
-        # Check cache
+    def is_owner(self, data_id: str, user_id: str) -> bool:
+        doc = self._get_generic(data_id)
+        return doc.get("owner") == user_id if doc else False
+
+    def can_read(self, data_id: str, user_id: str, user_roles: List[str]) -> bool:
+        doc = self._get_generic(data_id)
+        if not doc:
+            return False
+        if doc.get("owner") == user_id:
+            return True
+        allowed = set(doc.get("read", []))
+        return user_id in allowed or bool(allowed.intersection(user_roles))
+
+    def can_write(self, data_id: str, user_id: str, user_roles: List[str]) -> bool:
+        doc = self._get_generic(data_id)
+        if not doc:
+            return False
+        if doc.get("owner") == user_id:
+            return True
+        allowed = set(doc.get("write", []))
+        return user_id in allowed or bool(allowed.intersection(user_roles))
+
+    def _get_generic(self, id: str) -> Optional[Dict[str, Any]]:
         cached_data = super().get(id)
         if cached_data:
-            return model_cls(**cached_data)
+            return cached_data
 
-        # Check DB
-        collection = ArangoDBClient().get_collection(col_name)
-        doc = collection.get({"_key": key})
-        if doc:
-            instance = model_cls(**doc)
-            # Populate cache
-            self.set(id, instance.model_dump(by_alias=True))
-            return instance
-
+        try:
+            col_name, key = ArangoDBClient().parse_id(id)
+            collection = ArangoDBClient().get_collection(col_name)
+            doc = collection.get({"_key": key})
+            if doc:
+                self.set(id, doc)
+                return doc
+        except Exception:
+            pass
         return None
