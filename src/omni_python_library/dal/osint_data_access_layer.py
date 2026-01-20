@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List, Optional, Type, Union
 
 from omni_python_library.clients.arangodb import ArangoDBClient
@@ -5,6 +6,8 @@ from omni_python_library.dal.osint_data_deleter import OsintDataDeleter
 from omni_python_library.dal.osint_data_factory import OsintDataFactory
 from omni_python_library.dal.osint_data_updater import OsintDataUpdater
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+
+logger = logging.getLogger(__name__)
 
 
 class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter):
@@ -36,33 +39,39 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
         :return: A list of mapped objects (Relation, Person, Organization, Website, Source, or Event).
                  Documents that do not match the expected schema or collection types are skipped.
         """
+        logger.debug(f"Executing query: {query_str} with vars: {bind_vars}")
         if bind_vars is None:
             bind_vars = {}
-        cursor = ArangoDBClient().db.aql.execute(query_str, bind_vars=bind_vars)
-        results = []
+        try:
+            cursor = ArangoDBClient().db.aql.execute(query_str, bind_vars=bind_vars)
+            results = []
 
-        for doc in cursor:
-            if not isinstance(doc, dict):
-                continue
+            for doc in cursor:
+                if not isinstance(doc, dict):
+                    continue
 
-            if "_from" in doc and "_to" in doc:
-                results.append(Relation(**doc))
-                continue
+                if "_from" in doc and "_to" in doc:
+                    results.append(Relation(**doc))
+                    continue
 
-            if "_id" in doc:
-                col_name, _ = ArangoDBClient().parse_id(doc["_id"])
-                if col_name == "person":
-                    results.append(Person(**doc))
-                elif col_name == "organization":
-                    results.append(Organization(**doc))
-                elif col_name == "website":
-                    results.append(Website(**doc))
-                elif col_name == "source":
-                    results.append(Source(**doc))
-                elif col_name == "event":
-                    results.append(Event(**doc))
+                if "_id" in doc:
+                    col_name, _ = ArangoDBClient().parse_id(doc["_id"])
+                    if col_name == "person":
+                        results.append(Person(**doc))
+                    elif col_name == "organization":
+                        results.append(Organization(**doc))
+                    elif col_name == "website":
+                        results.append(Website(**doc))
+                    elif col_name == "source":
+                        results.append(Source(**doc))
+                    elif col_name == "event":
+                        results.append(Event(**doc))
 
-        return results
+            logger.debug(f"Query returned {len(results)} results")
+            return results
+        except Exception:
+            logger.exception("Error executing query")
+            raise
 
     def get_relation(self, id: str) -> Optional[Relation]:
         return self._get(Relation, id)
@@ -85,6 +94,7 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
     def _get(
         self, model_cls: Type[Union[Relation, Event, Source, Person, Organization, Website]], id: str
     ) -> Optional[Any]:
+        logger.debug(f"Getting {id}")
         doc = self._get_generic(id)
         if doc:
             return model_cls(**doc)
@@ -92,10 +102,12 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
 
     def is_owner(self, data_id: str, user_id: str) -> bool:
         doc = self._get_generic(data_id)
+        logger.debug(f"Checking ownership for {data_id}: user {user_id} == {doc.get('owner')}")
         return doc.get("owner") == user_id if doc else False
 
     def can_read(self, data_id: str, user_id: str, user_roles: List[str]) -> bool:
         doc = self._get_generic(data_id)
+        logger.debug(f"Checking read permission for {data_id}: user {user_id}, roles {user_roles} in {doc.get('read', [])}")
         if not doc:
             return False
         if doc.get("owner") == user_id:
@@ -105,6 +117,7 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
 
     def can_write(self, data_id: str, user_id: str, user_roles: List[str]) -> bool:
         doc = self._get_generic(data_id)
+        logger.debug(f"Checking write permission for {data_id}: user {user_id}, roles {user_roles} in {doc.get('write', [])}")
         if not doc:
             return False
         if doc.get("owner") == user_id:
@@ -125,5 +138,6 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
                 self.set(id, doc)
                 return doc
         except Exception:
+            logger.exception(f"Error fetching generic document {id}")
             pass
         return None

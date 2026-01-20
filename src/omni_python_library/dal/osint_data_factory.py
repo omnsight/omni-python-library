@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Optional, Type, Union
 
 from omni_python_library.clients.arangodb import ArangoDBClient
@@ -18,12 +19,15 @@ from omni_python_library.models.osint import (
     WebsiteMainData,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class OsintDataFactory(Cacher):
     def init(self):
         super().init()
 
     def create_relation(self, data: RelationMainData, owner: str) -> Relation:
+        logger.debug(f"Creating relation: {data} with owner: {owner}")
         src_col_name, _ = ArangoDBClient().parse_id(data.from_id)
         to_col_name, _ = ArangoDBClient().parse_id(data.to_id)
         collection = ArangoDBClient().get_edge_collection(
@@ -33,7 +37,7 @@ class OsintDataFactory(Cacher):
         )
 
         relation_data = Relation(**data.model_dump(exclude_unset=True), owner=owner)
-        
+
         meta = collection.insert(relation_data.model_dump(by_alias=True, exclude_unset=True), return_new=True)
         new_doc = meta["new"]
         new_data = Relation(
@@ -106,8 +110,8 @@ class OsintDataFactory(Cacher):
         try:
             response = client.embeddings.create(input=text, model=model)
             return response.data[0].embedding
-        except Exception as e:
-            print(f"Error generating embedding: {e}")
+        except Exception:
+            logger.exception("Error generating embedding")
             return None
 
     def _create(
@@ -117,6 +121,7 @@ class OsintDataFactory(Cacher):
         text: Optional[str] = None,
     ) -> Any:
         collection = ArangoDBClient().get_collection(model_cls.__name__.lower())
+        logger.debug(f"Creating {collection.name}: {data} with owner: {data.owner}")
 
         # Generate embedding
         embedding = self._generate_embedding(text)

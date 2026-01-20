@@ -1,5 +1,9 @@
+import logging
+
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.cacher import Cacher
+
+logger = logging.getLogger(__name__)
 
 
 class OsintDataDeleter(Cacher):
@@ -15,6 +19,7 @@ class OsintDataDeleter(Cacher):
         return self._delete(col_name, key)
 
     def _delete(self, col_name: str, key: str) -> bool:
+        logger.debug(f"Internal delete: col={col_name}, key={key}")
         collection = ArangoDBClient().get_collection(col_name)
         col_name = collection.name
 
@@ -27,4 +32,5 @@ class OsintDataDeleter(Cacher):
 
             return True
         except Exception:
+            logger.exception(f"Error deleting document {col_name}/{key}")
             return False
