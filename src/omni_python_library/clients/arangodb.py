@@ -33,6 +33,7 @@ class ArangoDBClient(Singleton):
         self._init_collection("website", indices=[["url"]], vector_index=True)
         self._init_collection("source", indices=[["url"]], vector_index=True)
         self._init_collection("event", indices=[["happened_at"]], vector_index=True)
+        self._init_event_view()
 
     @property
     def db(self):
@@ -46,7 +47,12 @@ class ArangoDBClient(Singleton):
 
     def get_edge_collection(self, name: str, from_coll: str, to_coll: str):
         collection_name = f"{from_coll}_{name}_{to_coll}"
-        return self._init_collection(collection_name, edge=True)
+        col = self._init_collection(collection_name, edge=True)
+
+        if from_coll == "event" and to_coll == "event":
+            self._ensure_in_view("event_view", collection_name)
+
+        return col
 
     def parse_id(self, id: str):
         col_name = id.split("/")[0]
@@ -82,3 +88,20 @@ class ArangoDBClient(Singleton):
 
         self._collections[col_name] = col
         return col
+
+    def _init_event_view(self):
+        view_name = "event_view"
+        if not self._db.has_view(view_name):
+            self._db.create_arangosearch_view(
+                view_name, properties={"links": {"event": {"includeAllFields": True}}}
+            )
+        else:
+            self._ensure_in_view(view_name, "event")
+
+    def _ensure_in_view(self, view_name: str, collection_name: str):
+        view = self._db.view(view_name)
+        props = view.properties()
+        links = props.get("links", {})
+        if collection_name not in links:
+            links[collection_name] = {"includeAllFields": True}
+            view.update_properties({"links": links})

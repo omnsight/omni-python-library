@@ -60,6 +60,9 @@ class TestInitialization(unittest.TestCase):
         # The init method calls _init_collection for several default collections
         self.assertTrue(mock_db.has_collection.called)
 
+        # Verify view initialization
+        self.assertTrue(mock_db.has_view.called)
+
     @patch("omni_python_library.dal.osint_data_factory.OpenAI")
     @patch("omni_python_library.dal.cacher.RedisClient")
     @patch("omni_python_library.clients.arangodb.ArangoDBClient")
