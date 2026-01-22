@@ -102,7 +102,7 @@ class OsintDataFactory(Cacher):
             text,
         )
 
-    def _generate_embedding(self, text: Optional[str]):
+    def generate_embedding(self, text: Optional[str]):
         client, model = OpenAIClient().get_client("embedding")
         if not client or not text:
             return None
@@ -124,7 +124,7 @@ class OsintDataFactory(Cacher):
         logger.debug(f"Creating {collection.name}: {data} with owner: {data.owner}")
 
         # Generate embedding
-        embedding = self._generate_embedding(text)
+        embedding = self.generate_embedding(text)
 
         # Insert into Arango
         doc = data.model_dump(by_alias=True, exclude_unset=True)
