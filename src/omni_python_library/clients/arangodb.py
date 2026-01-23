@@ -34,6 +34,7 @@ class ArangoDBClient(Singleton):
         self._init_collection("source", indices=[["url"]], vector_index=True)
         self._init_collection("event", indices=[["happened_at"]], vector_index=True)
         self._init_event_view()
+        self._init_event_related_view()
 
     @property
     def db(self):
@@ -51,6 +52,8 @@ class ArangoDBClient(Singleton):
 
         if from_coll == "event" and to_coll == "event":
             self._ensure_in_view("event_view", collection_name)
+        else:
+            self._ensure_in_view("event_related_view", collection_name)
 
         return col
 
@@ -97,6 +100,18 @@ class ArangoDBClient(Singleton):
             )
         else:
             self._ensure_in_view(view_name, "event")
+
+    def _init_event_related_view(self):
+        view_name = "event_related_view"
+        collections = ["person", "organization", "website", "source", "event"]
+        if not self._db.has_view(view_name):
+            links = {col: {"includeAllFields": True} for col in collections}
+            self._db.create_arangosearch_view(
+                view_name, properties={"links": links}
+            )
+        else:
+            for col in collections:
+                self._ensure_in_view(view_name, col)
 
     def _ensure_in_view(self, view_name: str, collection_name: str):
         view = self._db.view(view_name)
