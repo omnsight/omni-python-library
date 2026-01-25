@@ -28,3 +28,8 @@ docker compose up -d
 python3 -m pytest
 docker compose down
 ```
+
+Format the code using black:
+```bash
+uv run black .
+```

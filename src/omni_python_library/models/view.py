@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List
-
-from pydantic import BaseModel, Field
+from pydantic import Field
+from pydantic import BaseModel
+from omni_python_library.models.common import ArangoData, Permissive
 
 
 class ViewUI(Enum):
@@ -11,16 +12,21 @@ class ViewUI(Enum):
 
 class ViewMode(Enum):
     DEFAULT = "default"
-    RULER = "ruler"
+    TIMELINE = "timeline"
     COMPARE = "compare"
 
 
-class EntityView(BaseModel):
-    view_id: str = Field(description="Unique identifier for the view")
-    view_name: str = Field(description="Name of the view")
-    description: str = Field(description="Description of the view")
-    entities: List[str] = Field(description="List of entity IDs included in the view")
-    relations: List[str] = Field(description="List of relation IDs included in the view")
-    selected: List[str] = Field(description="List of selected entity or relation IDs")
-    view_ui: ViewUI = Field(description="UI type for the view")
-    view_model: ViewMode = Field(description="Mode of the view")
+class ViewConfig(BaseModel):
+    ui: ViewUI = Field(description="UI type for the view")
+    mode: ViewMode = Field(description="Mode of the view")
+    entities: List[str] = Field(description="List of entity ids this view config highlights. For example, compare mode will render these entities in parallel highlighting their differences.")
+
+
+class OsintViewMainData(BaseModel):
+    name: str = Field(description="Name of the view")
+    description: str = Field(description="Description of the view") 
+    configs: List[ViewConfig] = Field(description="List of view configurations")
+
+
+class OsintView(OsintViewMainData, ArangoData, Permissive):
+    pass

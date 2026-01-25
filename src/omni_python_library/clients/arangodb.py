@@ -33,8 +33,10 @@ class ArangoDBClient(Singleton):
         self._init_collection("website", indices=[["url"]], vector_index=True)
         self._init_collection("source", indices=[["url"]], vector_index=True)
         self._init_collection("event", indices=[["happened_at"]], vector_index=True)
+        self._init_collection("osintview", indices=[["name"]], vector_index=False)
         self._init_event_view()
         self._init_event_related_view()
+        self._init_osint_view()
 
     @property
     def db(self):
@@ -52,6 +54,8 @@ class ArangoDBClient(Singleton):
 
         if from_coll == "event" and to_coll == "event":
             self._ensure_in_view("event_view", collection_name)
+        elif from_coll == "osintview":
+            self._ensure_in_view("osint_view", collection_name)
         else:
             self._ensure_in_view("event_related_view", collection_name)
 
@@ -104,6 +108,18 @@ class ArangoDBClient(Singleton):
     def _init_event_related_view(self):
         view_name = "event_related_view"
         collections = ["person", "organization", "website", "source", "event"]
+        if not self._db.has_view(view_name):
+            links = {col: {"includeAllFields": True} for col in collections}
+            self._db.create_arangosearch_view(
+                view_name, properties={"links": links}
+            )
+        else:
+            for col in collections:
+                self._ensure_in_view(view_name, col)
+
+    def _init_osint_view(self):
+        view_name = "osint_view"
+        collections = ["osintview", "person", "organization", "website", "source", "event"]
         if not self._db.has_view(view_name):
             links = {col: {"includeAllFields": True} for col in collections}
             self._db.create_arangosearch_view(
