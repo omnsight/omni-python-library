@@ -86,8 +86,12 @@ class TestViewCRUD(unittest.TestCase):
         entities = self.dal.get_entities(view.id)
         assert any(entity.id == person.id for entity in entities)
 
-        # Query by Owner
-        views = self.dal.query_by_owner("test_user")
+        # Query by Text
+        views = self.dal.query_by_text("Test View", "test_user")
+        self.assertTrue(any(v.id == view.id for v in views))
+
+        # Query by Description
+        views = self.dal.query_by_text("Updated Description", "test_user")
         self.assertTrue(any(v.id == view.id for v in views))
 
         # Delete View

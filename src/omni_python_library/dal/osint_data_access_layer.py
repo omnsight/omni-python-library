@@ -21,12 +21,19 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
     def init(self):
         super().init()
         client = ArangoDBClient()
-        client.init_collection(PERSON_COLLECTION_NAME, indices=[["name"]], vector_index=True)
-        client.init_collection(ORGANIZATION_COLLECTION_NAME, indices=[["name"]], vector_index=True)
-        client.init_collection(WEBSITE_COLLECTION_NAME, indices=[["url"]], vector_index=True)
-        client.init_collection(SOURCE_COLLECTION_NAME, indices=[["url"]], vector_index=True)
+        client.init_collection(PERSON_COLLECTION_NAME, indices=[("inverted", "name")], vector_index=True)
+        client.init_collection(ORGANIZATION_COLLECTION_NAME, indices=[("inverted", "name")], vector_index=True)
+        client.init_collection(WEBSITE_COLLECTION_NAME, indices=[("persistent", "url")], vector_index=True)
+        client.init_collection(SOURCE_COLLECTION_NAME, indices=[("persistent", "url")], vector_index=True)
         client.init_collection(
-            EVENT_COLLECTION_NAME, indices=[["happened_at"], ["location.country_code"]], vector_index=True
+            EVENT_COLLECTION_NAME,
+            indices=[
+                ("inverted", "title"),
+                ("inverted", "description"),
+                ("persistent", "happened_at"),
+                ("persistent", "location.country_code"),
+            ],
+            vector_index=True,
         )
 
         client.init_graph(

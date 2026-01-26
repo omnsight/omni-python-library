@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from arango import ArangoClient
 from arango.collection import StandardCollection
@@ -31,18 +31,19 @@ class ArangoDBClient(Singleton):
         self._graph_callbacks: List[Callable[[str, str], Optional[str]]] = []
 
     def init_collection(
-        self, name: str, edge: bool = False, indices: Optional[list] = None, vector_index: bool = False
+        self, name: str, edge: bool = False, indices: List[Tuple[str, str]] = [], vector_index: bool = False
     ):
-        if indices is None:
-            indices = []
         col_name = name.lower()
         if not self._db.has_collection(col_name):
             self._db.create_collection(col_name, edge=edge)
 
         col = self._db.collection(col_name)
 
-        for fields in indices:
-            col.add_persistent_index(fields=fields)
+        for (type, index) in indices:
+            col.add_index({
+                "type": type,
+                "fields": [index],
+            })
 
         if vector_index:
             try:
@@ -71,7 +72,6 @@ class ArangoDBClient(Singleton):
             if self._db.has_view(view_name):
                 exists = True
         else:
-            # Fallback: check list of views
             try:
                 for v in self._db.views():
                     if v["name"] == view_name:

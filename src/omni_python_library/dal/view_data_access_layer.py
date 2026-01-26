@@ -19,7 +19,11 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
     def __init__(self):
         super().__init__()
         client = ArangoDBClient()
-        client.init_collection(COLLECTION_NAME, indices=[["name"]], vector_index=False)
+        client.init_collection(
+            COLLECTION_NAME,
+            indices=[("inverted", "name"), ("inverted", "description")],
+            vector_index=False,
+        )
         client.init_graph(
             VIEW_GRAPH_NAME, lambda from_coll, to_coll: VIEW_GRAPH_NAME if from_coll == COLLECTION_NAME else None
         )
@@ -31,16 +35,26 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
             return OsintView(**doc)
         return None
 
-    def query_by_owner(self, owner: str) -> List[OsintView]:
-        logger.debug(f"Querying views by owner: {owner}")
+    def query_by_text(self, text: str, owner: str, lang: str = "en", limit: int = 100) -> List[OsintView]:
+        logger.debug(f"Querying views by text: {text} and owner: {owner}")
 
-        query = """
+        query = f"""
+            LET terms = TOKENS(@text, "text_{lang}")
             FOR doc IN osintview
+                SEARCH ANALYZER(
+                    MIN_MATCH(
+                        doc.name IN terms,
+                        doc.description IN terms,
+                        LENGTH(terms)
+                    ),
+                    f"text_{lang}"
+                )
                 FILTER doc.owner == @owner
+                LIMIT @limit
                 RETURN doc
         """
 
-        bind_vars = {"owner": owner}
+        bind_vars = {"text": text, "owner": owner, "limit": limit}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []
@@ -49,7 +63,7 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
                     results.append(OsintView(**doc))
             return results
         except Exception:
-            logger.exception("Error querying views by owner")
+            logger.exception("Error querying views by text")
             raise
 
     def get_entities(self, view_id: str) -> List[Relation | Event | Source | Person | Organization | Website]:
