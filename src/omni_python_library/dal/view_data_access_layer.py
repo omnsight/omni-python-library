@@ -35,7 +35,7 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
             return OsintView(**doc)
         return None
 
-    def query_by_text(self, text: str, owner: str, lang: str = "en", limit: int = 100) -> List[OsintView]:
+    def query_views(self, text: str, owner: str, lang: str = "en", limit: int = 100) -> List[OsintView]:
         logger.debug(f"Querying views by text: {text} and owner: {owner}")
 
         query = f"""
