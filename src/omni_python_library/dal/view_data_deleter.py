@@ -14,17 +14,17 @@ class ViewDataDeleter(Cacher):
         logger.debug(f"Deleting view: {id}")
         try:
             col_name, key = ArangoDBClient().parse_id(id)
-            
+
             # Verify it's the right collection if needed, but parse_id gives us the collection from ID.
             # Assuming the ID is correct.
-            
+
             collection = ArangoDBClient().get_collection(col_name)
-            
+
             collection.delete({"_key": key})
-            
+
             # Delete from cache
             self.expel(f"{col_name}/{key}")
-            
+
             return True
         except Exception:
             logger.exception(f"Error deleting view {id}")

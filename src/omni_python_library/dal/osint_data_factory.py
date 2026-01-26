@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Type, Union, List
 
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.openai import OpenAIClient
@@ -102,9 +102,13 @@ class OsintDataFactory(Cacher):
             text,
         )
 
-    def generate_embedding(self, text: Optional[str]):
-        client, model = OpenAIClient().get_client("embedding")
-        if not client or not text:
+    def generate_embedding(self, text: Optional[str]) -> Union[List[float] | None]:
+        client_tuple = OpenAIClient().get_client("embedding")
+        if not client_tuple or not text:
+            return None
+
+        client, model = client_tuple
+        if not client:
             return None
 
         try:

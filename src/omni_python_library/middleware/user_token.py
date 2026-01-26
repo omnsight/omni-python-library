@@ -64,6 +64,4 @@ async def validate_create_permission(
     Validates that the user has 'pro' or 'admin' role.
     """
     if not any(role in roles for role in ["pro", "admin"]):
-        raise HTTPException(
-            status_code=403, detail="Insufficient permissions to create resources"
-        )
+        raise HTTPException(status_code=403, detail="Insufficient permissions to create resources")

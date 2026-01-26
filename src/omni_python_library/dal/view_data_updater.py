@@ -22,8 +22,6 @@ class ViewDataUpdater(Cacher):
         if isinstance(data, OsintViewMainData) and data.configs:
             for config in data.configs:
                 self._verify_entities_exist(config.entities)
-        elif isinstance(data, dict) and "configs" in data:
-            pass
 
         final_data = self._update(col_name, key, data.model_dump(exclude_unset=True))
         return OsintView(**final_data)
@@ -67,10 +65,7 @@ class ViewDataUpdater(Cacher):
             raise ValueError(f"View {view_id} not found")
 
         relation_data = RelationMainData(
-            name="includes",
-            from_id=view_id,
-            to_id=entity_id,
-            created_at=int(time.time() * 1000)
+            name="includes", from_id=view_id, to_id=entity_id, created_at=int(time.time() * 1000)
         )
 
         OsintDataAccessLayer().create_relation(relation_data, owner=view_doc.get("owner"))

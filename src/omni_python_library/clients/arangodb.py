@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Callable, Dict, List, Optional
 
 from arango import ArangoClient
 from arango.collection import StandardCollection
@@ -28,45 +28,9 @@ class ArangoDBClient(Singleton):
             password=self._password,
         )
         self._collections: Dict[str, StandardCollection] = {}
-        self._init_collection("person", indices=[["name"]], vector_index=True)
-        self._init_collection("organization", indices=[["name"]], vector_index=True)
-        self._init_collection("website", indices=[["url"]], vector_index=True)
-        self._init_collection("source", indices=[["url"]], vector_index=True)
-        self._init_collection("event", indices=[["happened_at"]], vector_index=True)
-        self._init_collection("osintview", indices=[["name"]], vector_index=False)
-        self._init_event_view()
-        self._init_event_related_view()
-        self._init_osint_view()
+        self._graph_callbacks: List[Callable[[str, str], Optional[str]]] = []
 
-    @property
-    def db(self):
-        return self._db
-
-    def get_collection(self, name: str):
-        col_name = name.lower()
-        if col_name in self._collections:
-            return self._collections[col_name]
-        raise ValueError(f"Collection '{col_name}' is not initialized.")
-
-    def get_edge_collection(self, name: str, from_coll: str, to_coll: str):
-        collection_name = f"{from_coll}_{name}_{to_coll}"
-        col = self._init_collection(collection_name, edge=True)
-
-        if from_coll == "event" and to_coll == "event":
-            self._ensure_in_view("event_view", collection_name)
-        elif from_coll == "osintview":
-            self._ensure_in_view("osint_view", collection_name)
-        else:
-            self._ensure_in_view("event_related_view", collection_name)
-
-        return col
-
-    def parse_id(self, id: str):
-        col_name = id.split("/")[0]
-        key = id.split("/")[-1]
-        return col_name, key
-
-    def _init_collection(
+    def init_collection(
         self, name: str, edge: bool = False, indices: Optional[list] = None, vector_index: bool = False
     ):
         if indices is None:
@@ -96,43 +60,75 @@ class ArangoDBClient(Singleton):
         self._collections[col_name] = col
         return col
 
-    def _init_event_view(self):
-        view_name = "event_view"
-        if not self._db.has_view(view_name):
-            self._db.create_arangosearch_view(
-                view_name, properties={"links": {"event": {"includeAllFields": True}}}
-            )
-        else:
-            self._ensure_in_view(view_name, "event")
+    def init_graph(self, graph_name: str, callback: Callable[[str, str], Optional[str]]):
+        if not self._db.has_graph(graph_name):
+            self._db.create_graph(graph_name)
+        self._graph_callbacks.append(callback)
 
-    def _init_event_related_view(self):
-        view_name = "event_related_view"
-        collections = ["person", "organization", "website", "source", "event"]
-        if not self._db.has_view(view_name):
-            links = {col: {"includeAllFields": True} for col in collections}
-            self._db.create_arangosearch_view(
-                view_name, properties={"links": links}
-            )
+    def init_view(self, view_name: str, properties: Dict):
+        exists = False
+        if hasattr(self._db, "has_view"):
+            if self._db.has_view(view_name):
+                exists = True
         else:
-            for col in collections:
-                self._ensure_in_view(view_name, col)
+            # Fallback: check list of views
+            try:
+                for v in self._db.views():
+                    if v["name"] == view_name:
+                        exists = True
+                        break
+            except Exception:
+                pass
 
-    def _init_osint_view(self):
-        view_name = "osint_view"
-        collections = ["osintview", "person", "organization", "website", "source", "event"]
-        if not self._db.has_view(view_name):
-            links = {col: {"includeAllFields": True} for col in collections}
-            self._db.create_arangosearch_view(
-                view_name, properties={"links": links}
+        if not exists:
+            try:
+                self._db.create_view(view_name, "arangosearch", properties)
+            except Exception:
+                # Might fail if it already exists or other issues
+                pass
+
+    @property
+    def db(self):
+        return self._db
+
+    def get_collection(self, name: str):
+        col_name = name.lower()
+        if col_name in self._collections:
+            return self._collections[col_name]
+
+        if self._db.has_collection(col_name):
+            self._collections[col_name] = self._db.collection(col_name)
+            return self._collections[col_name]
+        raise ValueError(f"Collection '{col_name}' is not initialized.")
+
+    def get_edge_collection(self, name: str, from_coll: str, to_coll: str):
+        collection_name = f"{from_coll}_{name}_{to_coll}"
+        col = self.init_collection(collection_name, edge=True)
+
+        for callback in self._graph_callbacks:
+            graph_name = callback(from_coll, to_coll)
+            if graph_name:
+                self._ensure_in_graph(graph_name, collection_name, from_coll, to_coll)
+
+        return col
+
+    def parse_id(self, id: str):
+        col_name = id.split("/")[0]
+        key = id.split("/")[-1]
+        return col_name, key
+
+    def _ensure_in_graph(self, graph_name: str, edge_collection: str, from_coll: str, to_coll: str):
+        graph = self._db.graph(graph_name)
+        edge_defs = graph.edge_definitions()
+
+        # Check if edge definition already exists
+        exists = False
+        for ed in edge_defs:
+            if ed["edge_collection"] == edge_collection:
+                exists = True
+                break
+
+        if not exists:
+            graph.create_edge_definition(
+                edge_collection=edge_collection, from_vertex_collections=[from_coll], to_vertex_collections=[to_coll]
             )
-        else:
-            for col in collections:
-                self._ensure_in_view(view_name, col)
-
-    def _ensure_in_view(self, view_name: str, collection_name: str):
-        view = self._db.view(view_name)
-        props = view.properties()
-        links = props.get("links", {})
-        if collection_name not in links:
-            links[collection_name] = {"includeAllFields": True}
-            view.update_properties({"links": links})

@@ -5,9 +5,9 @@
 
 This project is managed with [uv](https://github.com/astral-sh/uv).
 
-Install dependencies:
+Install dependencies (including development tools):
 ```bash
-uv sync
+uv sync --extra dev
 ```
 
 Upgrade dependencies:

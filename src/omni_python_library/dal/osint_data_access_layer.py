@@ -8,11 +8,41 @@ from omni_python_library.dal.osint_data_updater import OsintDataUpdater
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
 
 logger = logging.getLogger(__name__)
+PERSON_COLLECTION_NAME = "person"
+ORGANIZATION_COLLECTION_NAME = "organization"
+WEBSITE_COLLECTION_NAME = "website"
+SOURCE_COLLECTION_NAME = "source"
+EVENT_COLLECTION_NAME = "event"
+EVENT_RELATED_GRAPH_NAME = "event_related_graph"
+EVENT_GRAPH_NAME = "event_graph"
 
 
 class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter):
     def init(self):
         super().init()
+        client = ArangoDBClient()
+        client.init_collection(PERSON_COLLECTION_NAME, indices=[["name"]], vector_index=True)
+        client.init_collection(ORGANIZATION_COLLECTION_NAME, indices=[["name"]], vector_index=True)
+        client.init_collection(WEBSITE_COLLECTION_NAME, indices=[["url"]], vector_index=True)
+        client.init_collection(SOURCE_COLLECTION_NAME, indices=[["url"]], vector_index=True)
+        client.init_collection(
+            EVENT_COLLECTION_NAME, indices=[["happened_at"], ["location.country_code"]], vector_index=True
+        )
+
+        client.init_graph(
+            EVENT_RELATED_GRAPH_NAME,
+            lambda from_coll, to_coll: (
+                EVENT_RELATED_GRAPH_NAME
+                if from_coll == EVENT_COLLECTION_NAME and to_coll != EVENT_COLLECTION_NAME
+                else None
+            ),
+        )
+        client.init_graph(
+            EVENT_GRAPH_NAME,
+            lambda from_coll, to_coll: (
+                EVENT_GRAPH_NAME if from_coll == EVENT_COLLECTION_NAME and to_coll == EVENT_COLLECTION_NAME else None
+            ),
+        )
 
     def query(
         self, query_str: str, bind_vars: Optional[Dict[str, Any]] = None
@@ -107,7 +137,9 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
 
     def can_read(self, data_id: str, user_id: str, user_roles: List[str]) -> bool:
         doc = self._get_generic(data_id)
-        logger.debug(f"Checking read permission for {data_id}: user {user_id}, roles {user_roles} in {doc.get('read', [])}")
+        logger.debug(
+            f"Checking read permission for {data_id}: user {user_id}, roles {user_roles} in {doc.get('read', [])}"
+        )
         if not doc:
             return False
         if doc.get("owner") == user_id:
@@ -117,7 +149,9 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
 
     def can_write(self, data_id: str, user_id: str, user_roles: List[str]) -> bool:
         doc = self._get_generic(data_id)
-        logger.debug(f"Checking write permission for {data_id}: user {user_id}, roles {user_roles} in {doc.get('write', [])}")
+        logger.debug(
+            f"Checking write permission for {data_id}: user {user_id}, roles {user_roles} in {doc.get('write', [])}"
+        )
         if not doc:
             return False
         if doc.get("owner") == user_id:
