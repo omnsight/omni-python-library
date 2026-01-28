@@ -15,9 +15,6 @@ class ViewDataDeleter(Cacher):
         try:
             col_name, key = ArangoDBClient().parse_id(id)
 
-            # Verify it's the right collection if needed, but parse_id gives us the collection from ID.
-            # Assuming the ID is correct.
-
             collection = ArangoDBClient().get_collection(col_name)
 
             collection.delete({"_key": key})

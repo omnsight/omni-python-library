@@ -6,27 +6,21 @@ from omni_python_library.dal.osint_data_deleter import OsintDataDeleter
 from omni_python_library.dal.osint_data_factory import OsintDataFactory
 from omni_python_library.dal.osint_data_updater import OsintDataUpdater
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.utils.config_registry import ArangoDBConstant, EntityNameConstant
 
 logger = logging.getLogger(__name__)
-PERSON_COLLECTION_NAME = "person"
-ORGANIZATION_COLLECTION_NAME = "organization"
-WEBSITE_COLLECTION_NAME = "website"
-SOURCE_COLLECTION_NAME = "source"
-EVENT_COLLECTION_NAME = "event"
-EVENT_RELATED_GRAPH_NAME = "event_related_graph"
-EVENT_GRAPH_NAME = "event_graph"
 
 
 class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter):
     def init(self):
         super().init()
         client = ArangoDBClient()
-        client.init_collection(PERSON_COLLECTION_NAME, indices=[("inverted", "name")], vector_index=True)
-        client.init_collection(ORGANIZATION_COLLECTION_NAME, indices=[("inverted", "name")], vector_index=True)
-        client.init_collection(WEBSITE_COLLECTION_NAME, indices=[("persistent", "url")], vector_index=True)
-        client.init_collection(SOURCE_COLLECTION_NAME, indices=[("persistent", "url")], vector_index=True)
+        client.init_collection(EntityNameConstant.PERSON, indices=[("inverted", "name")], vector_index=True)
+        client.init_collection(EntityNameConstant.ORGANIZATION, indices=[("inverted", "name")], vector_index=True)
+        client.init_collection(EntityNameConstant.WEBSITE, indices=[("persistent", "url")], vector_index=True)
+        client.init_collection(EntityNameConstant.SOURCE, indices=[("persistent", "url")], vector_index=True)
         client.init_collection(
-            EVENT_COLLECTION_NAME,
+            EntityNameConstant.EVENT,
             indices=[
                 ("inverted", "title"),
                 ("inverted", "description"),
@@ -35,19 +29,18 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
             ],
             vector_index=True,
         )
-
         client.init_graph(
-            EVENT_RELATED_GRAPH_NAME,
+            ArangoDBConstant.EVENT_RELATED_GRAPH,
             lambda from_coll, to_coll: (
-                EVENT_RELATED_GRAPH_NAME
-                if from_coll == EVENT_COLLECTION_NAME and to_coll != EVENT_COLLECTION_NAME
+                ArangoDBConstant.EVENT_RELATED_GRAPH
+                if from_coll == EntityNameConstant.EVENT and to_coll != EntityNameConstant.EVENT
                 else None
             ),
         )
         client.init_graph(
-            EVENT_GRAPH_NAME,
+            ArangoDBConstant.EVENT_GRAPH,
             lambda from_coll, to_coll: (
-                EVENT_GRAPH_NAME if from_coll == EVENT_COLLECTION_NAME and to_coll == EVENT_COLLECTION_NAME else None
+                ArangoDBConstant.EVENT_GRAPH if from_coll == EntityNameConstant.EVENT and to_coll == EntityNameConstant.EVENT else None
             ),
         )
 

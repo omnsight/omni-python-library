@@ -21,16 +21,15 @@ class OsintDataDeleter(Cacher):
     def _delete(self, col_name: str, key: str) -> bool:
         logger.debug(f"Internal delete: col={col_name}, key={key}")
         collection = ArangoDBClient().get_collection(col_name)
-        col_name = collection.name
 
         # Delete from Arango
         try:
             collection.delete({"_key": key})
 
             # Delete from cache
-            self.expel(f"{col_name}/{key}")
+            self.expel(f"{collection.name}/{key}")
 
             return True
         except Exception:
-            logger.exception(f"Error deleting document {col_name}/{key}")
+            logger.exception(f"Error deleting document {collection.name}/{key}")
             return False

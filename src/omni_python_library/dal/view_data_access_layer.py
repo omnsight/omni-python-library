@@ -8,11 +8,9 @@ from omni_python_library.dal.view_data_factory import ViewDataFactory
 from omni_python_library.dal.view_data_updater import ViewDataUpdater
 from omni_python_library.models.view import OsintView
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.utils.config_registry import ArangoDBConstant, EntityNameConstant
 
 logger = logging.getLogger(__name__)
-
-COLLECTION_NAME = "osintview"
-VIEW_GRAPH_NAME = "osint_graph"
 
 
 class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
@@ -20,12 +18,12 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
         super().__init__()
         client = ArangoDBClient()
         client.init_collection(
-            COLLECTION_NAME,
+            EntityNameConstant.VIEW,
             indices=[("inverted", "name"), ("inverted", "description")],
             vector_index=False,
         )
         client.init_graph(
-            VIEW_GRAPH_NAME, lambda from_coll, to_coll: VIEW_GRAPH_NAME if from_coll == COLLECTION_NAME else None
+            ArangoDBConstant.VIEW_GRAPH, lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None
         )
 
     def get_view(self, id: str) -> Optional[OsintView]:
@@ -40,7 +38,7 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
 
         query = f"""
             LET terms = TOKENS(@text, "text_{lang}")
-            FOR doc IN osintview
+            FOR doc IN {EntityNameConstant.VIEW}
                 SEARCH ANALYZER(
                     MIN_MATCH(
                         doc.name IN terms,
@@ -71,7 +69,7 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
 
         query = f"""
             FOR v, e IN 1..1 OUTBOUND @view_id
-                GRAPH '{VIEW_GRAPH_NAME}'
+                GRAPH '{ArangoDBConstant.VIEW_GRAPH}'
                 RETURN v
         """
         bind_vars = {"view_id": view_id}

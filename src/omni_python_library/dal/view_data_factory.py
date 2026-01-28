@@ -3,6 +3,7 @@ import logging
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.cacher import Cacher
 from omni_python_library.models.view import OsintView, OsintViewMainData
+from omni_python_library.utils.config_registry import EntityNameConstant
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class ViewDataFactory(Cacher):
     def create_view(self, data: OsintViewMainData, owner: str) -> OsintView:
         logger.debug(f"Creating view: {data.name} with owner: {owner}")
 
-        collection = ArangoDBClient().get_collection("osintview")
+        collection = ArangoDBClient().get_collection(EntityNameConstant.VIEW)
 
         doc = data.model_dump(mode='json', by_alias=True, exclude_unset=True)
         doc["owner"] = owner

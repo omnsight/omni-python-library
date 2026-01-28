@@ -18,6 +18,7 @@ from omni_python_library.models.osint import (
     Website,
     WebsiteMainData,
 )
+from omni_python_library.utils.config_registry import LLMConstant
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +104,7 @@ class OsintDataFactory(Cacher):
         )
 
     def generate_embedding(self, text: Optional[str]) -> Union[List[float] | None]:
-        client_tuple = OpenAIClient().get_client("embedding")
+        client_tuple = OpenAIClient().get_client(LLMConstant.EMBEDDING)
         if not client_tuple or not text:
             return None
 
