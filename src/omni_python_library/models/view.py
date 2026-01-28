@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import Field
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
+
 from omni_python_library.models.common import ArangoData, Permissive
 
 

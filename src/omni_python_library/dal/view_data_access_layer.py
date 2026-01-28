@@ -1,13 +1,13 @@
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_deleter import ViewDataDeleter
 from omni_python_library.dal.view_data_factory import ViewDataFactory
 from omni_python_library.dal.view_data_updater import ViewDataUpdater
-from omni_python_library.models.view import OsintView
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.models.view import OsintView
 from omni_python_library.utils.config_registry import ArangoDBConstant, EntityNameConstant
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,8 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
             vector_index=False,
         )
         client.init_graph(
-            ArangoDBConstant.VIEW_GRAPH, lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None
+            ArangoDBConstant.VIEW_GRAPH,
+            lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None,
         )
 
     def get_view(self, id: str) -> Optional[OsintView]:

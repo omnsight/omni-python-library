@@ -1,15 +1,16 @@
-import unittest
 import time
+import unittest
+
 from arango import ArangoClient as PyArangoClient
+
 from omni_python_library.clients.arangodb import ArangoDBClient
+from omni_python_library.clients.openai import OpenAIClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.dal.query_tools.event_search import search_events
 from omni_python_library.dal.query_tools.entity_neighborhood import search_entity_neighborhood
-from omni_python_library.models.osint import EventMainData, RelationMainData, PersonMainData, LocationData
+from omni_python_library.dal.query_tools.event_search import search_events
+from omni_python_library.models.osint import EventMainData, LocationData, PersonMainData, RelationMainData
 from omni_python_library.utils.singleton import Singleton
-
-from omni_python_library.clients.openai import OpenAIClient
 
 
 class TestQueryTools(unittest.TestCase):

@@ -1,5 +1,5 @@
-import unittest
 import sys
+import unittest
 from unittest.mock import MagicMock, patch
 
 # Pre-mock to avoid side effects during import if any
@@ -63,7 +63,7 @@ class TestInitialization(unittest.TestCase):
         mock_redis_instance = MagicMock()
         mock_redis_instance.client = MagicMock()
         mock_redis.return_value = mock_redis_instance
-        
+
         # Setup ArangoDBClient mock instance
         mock_arango_instance = MagicMock()
         mock_arango.return_value = mock_arango_instance
@@ -72,7 +72,6 @@ class TestInitialization(unittest.TestCase):
 
         dal = OsintDataAccessLayer()
         dal.init()
-
 
 
 if __name__ == "__main__":

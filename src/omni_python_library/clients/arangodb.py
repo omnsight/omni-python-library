@@ -39,11 +39,13 @@ class ArangoDBClient(Singleton):
 
         col = self._db.collection(col_name)
 
-        for (type, index) in indices:
-            col.add_index({
-                "type": type,
-                "fields": [index],
-            })
+        for type, index in indices:
+            col.add_index(
+                {
+                    "type": type,
+                    "fields": [index],
+                }
+            )
 
         if vector_index:
             try:

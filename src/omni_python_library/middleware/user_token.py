@@ -1,6 +1,7 @@
-from fastapi import Header, HTTPException, Depends
+from typing import Dict, List, Optional
+
 import jwt
-from typing import Optional, List, Dict
+from fastapi import Depends, Header, HTTPException
 
 
 async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:

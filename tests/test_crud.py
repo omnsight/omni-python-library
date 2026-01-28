@@ -1,11 +1,12 @@
 import unittest
 
 from arango import ArangoClient as PyArangoClient
+
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.utils.singleton import Singleton
 from omni_python_library.models.osint import Person, PersonMainData
+from omni_python_library.utils.singleton import Singleton
 
 # This test suite assumes a running ArangoDB and Redis instance (via docker-compose)
 # We skip these tests if the services aren't available to avoid failing CI without docker.
@@ -53,6 +54,7 @@ class TestCRUD(unittest.TestCase):
         self.dal = OsintDataAccessLayer()
         # Ensure OpenAIClient is initialized (even if empty) to avoid AttributeError
         from omni_python_library.clients.openai import OpenAIClient
+
         OpenAIClient().init()
         self.dal.init()
 

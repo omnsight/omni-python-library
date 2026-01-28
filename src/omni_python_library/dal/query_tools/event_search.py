@@ -2,7 +2,7 @@ from typing import Annotated, List, Optional, Tuple, Union
 
 from pydantic import Field
 
-from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer, EVENT_GRAPH_NAME
+from omni_python_library.dal.osint_data_access_layer import EVENT_GRAPH_NAME, OsintDataAccessLayer
 from omni_python_library.models.osint import Event, Relation
 
 

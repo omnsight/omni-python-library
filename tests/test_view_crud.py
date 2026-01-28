@@ -1,13 +1,14 @@
-import unittest
 import logging
+import unittest
 
 from arango import ArangoClient as PyArangoClient
+
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
-from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.models.view import OsintViewMainData, ViewConfig, ViewUI, ViewMode
+from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models.osint import PersonMainData
+from omni_python_library.models.view import OsintViewMainData, ViewConfig, ViewMode, ViewUI
 from omni_python_library.utils.singleton import Singleton
 
 # Configure logging
@@ -44,6 +45,7 @@ class TestViewCRUD(unittest.TestCase):
         self.osint_dal = OsintDataAccessLayer()
         # Ensure OpenAIClient is initialized
         from omni_python_library.clients.openai import OpenAIClient
+
         OpenAIClient().init()
         self.dal.init()
         self.osint_dal.init()

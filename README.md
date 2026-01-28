@@ -29,7 +29,8 @@ python3 -m pytest
 docker compose down
 ```
 
-Format the code using black:
+Format the code using black and isort:
 ```bash
 uv run black .
+uv run isort .
 ```

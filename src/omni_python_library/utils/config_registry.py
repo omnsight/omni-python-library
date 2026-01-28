@@ -1,6 +1,7 @@
-from typing import Dict
-import os
 import logging
+import os
+from typing import Dict
+
 from omni_python_library.utils.singleton import Singleton
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ class ConfigRegistry(Singleton):
             if os.path.exists(file_path):
                 with open(file_path, "r") as f:
                     return f.read().strip()
-            
+
             val = os.getenv(key)
             if val is None:
                 raise Exception(f"Config key {key} not found in both file and env var")

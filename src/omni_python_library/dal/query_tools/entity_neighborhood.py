@@ -2,7 +2,7 @@ from typing import Annotated, List, Union
 
 from pydantic import Field
 
-from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer, EVENT_RELATED_GRAPH_NAME
+from omni_python_library.dal.osint_data_access_layer import EVENT_RELATED_GRAPH_NAME, OsintDataAccessLayer
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
 
 

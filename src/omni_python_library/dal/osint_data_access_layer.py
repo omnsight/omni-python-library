@@ -40,7 +40,9 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter)
         client.init_graph(
             ArangoDBConstant.EVENT_GRAPH,
             lambda from_coll, to_coll: (
-                ArangoDBConstant.EVENT_GRAPH if from_coll == EntityNameConstant.EVENT and to_coll == EntityNameConstant.EVENT else None
+                ArangoDBConstant.EVENT_GRAPH
+                if from_coll == EntityNameConstant.EVENT and to_coll == EntityNameConstant.EVENT
+                else None
             ),
         )
 

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional, Type, Union, List
+from typing import Any, List, Optional, Type, Union
 
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.openai import OpenAIClient

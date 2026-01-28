@@ -17,7 +17,7 @@ class ViewDataFactory(Cacher):
 
         collection = ArangoDBClient().get_collection(EntityNameConstant.VIEW)
 
-        doc = data.model_dump(mode='json', by_alias=True, exclude_unset=True)
+        doc = data.model_dump(mode="json", by_alias=True, exclude_unset=True)
         doc["owner"] = owner
 
         meta = collection.insert(doc, return_new=True)
@@ -26,6 +26,6 @@ class ViewDataFactory(Cacher):
         instance = OsintView(id=new_doc["_id"], key=new_doc["_key"], rev=new_doc["_rev"], **new_doc)
 
         # Cache the new instance
-        self.set(instance.id, instance.model_dump(mode='json', by_alias=True))
+        self.set(instance.id, instance.model_dump(mode="json", by_alias=True))
 
         return instance
