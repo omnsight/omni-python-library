@@ -2,16 +2,16 @@ import logging
 from typing import Any, Dict, List, Optional, Type, Union
 
 from omni_python_library.clients.arangodb import ArangoDBClient
-from omni_python_library.dal.osint_data_deleter import OsintDataDeleter
+from omni_python_library.dal.osint_data_destroyer import OsintDataDestroyer
 from omni_python_library.dal.osint_data_factory import OsintDataFactory
-from omni_python_library.dal.osint_data_updater import OsintDataUpdater
+from omni_python_library.dal.osint_data_mutator import OsintDataMutator
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
 from omni_python_library.utils.config_registry import ArangoDBConstant, EntityNameConstant
 
 logger = logging.getLogger(__name__)
 
 
-class OsintDataAccessLayer(OsintDataFactory, OsintDataUpdater, OsintDataDeleter):
+class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroyer):
     def init(self):
         super().init()
         client = ArangoDBClient()

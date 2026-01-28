@@ -15,6 +15,7 @@ class EntityNameConstant:
     SOURCE = "source"
     RELATION = "relation"
     VIEW = "osintview"
+    MONITORING_SOURCE = "monitoringsource"
 
 
 class ArangoDBConstant:

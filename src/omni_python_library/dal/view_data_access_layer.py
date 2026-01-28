@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional
 
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.dal.view_data_deleter import ViewDataDeleter
+from omni_python_library.dal.view_data_destroyer import ViewDataDestroyer
 from omni_python_library.dal.view_data_factory import ViewDataFactory
-from omni_python_library.dal.view_data_updater import ViewDataUpdater
+from omni_python_library.dal.view_data_mutator import ViewDataMutator
 from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
 from omni_python_library.models.view import OsintView
 from omni_python_library.utils.config_registry import ArangoDBConstant, EntityNameConstant
@@ -13,7 +13,7 @@ from omni_python_library.utils.config_registry import ArangoDBConstant, EntityNa
 logger = logging.getLogger(__name__)
 
 
-class ViewDataAccessLayer(ViewDataFactory, ViewDataUpdater, ViewDataDeleter):
+class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
     def __init__(self):
         super().__init__()
         client = ArangoDBClient()

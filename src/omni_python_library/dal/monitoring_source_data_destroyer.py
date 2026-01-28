@@ -6,12 +6,12 @@ from omni_python_library.dal.cacher import Cacher
 logger = logging.getLogger(__name__)
 
 
-class ViewDataDeleter(Cacher):
+class MonitoringSourceDataDestroyer(Cacher):
     def init(self):
         super().init()
 
-    def delete_view(self, id: str) -> bool:
-        logger.debug(f"Deleting view: {id}")
+    def delete_monitoring_source(self, id: str) -> bool:
+        logger.debug(f"Deleting monitoring source: {id}")
         try:
             col_name, key = ArangoDBClient().parse_id(id)
 
@@ -24,5 +24,5 @@ class ViewDataDeleter(Cacher):
 
             return True
         except Exception:
-            logger.exception(f"Error deleting view {id}")
+            logger.exception(f"Error deleting monitoring source {id}")
             return False

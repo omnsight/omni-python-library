@@ -12,7 +12,7 @@ from omni_python_library.models.view import OsintView, OsintViewMainData, ViewCo
 logger = logging.getLogger(__name__)
 
 
-class ViewDataUpdater(Cacher):
+class ViewDataMutator(Cacher):
     def init(self):
         super().init()
 

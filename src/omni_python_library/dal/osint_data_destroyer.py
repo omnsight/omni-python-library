@@ -6,7 +6,7 @@ from omni_python_library.dal.cacher import Cacher
 logger = logging.getLogger(__name__)
 
 
-class OsintDataDeleter(Cacher):
+class OsintDataDestroyer(Cacher):
     def init(self):
         super().init()
 

@@ -22,7 +22,7 @@ from omni_python_library.models.osint import (
 logger = logging.getLogger(__name__)
 
 
-class OsintDataUpdater(Cacher):
+class OsintDataMutator(Cacher):
     def init(self):
         super().init()
 
