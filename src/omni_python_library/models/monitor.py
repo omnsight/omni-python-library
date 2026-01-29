@@ -14,8 +14,10 @@ class SourceType(str, Enum):
 
 class MonitoringSourceMainData(BaseModel):
     name: Optional[str] = Field(default=None, description="Name of the monitoring source")
+    description: Optional[str] = Field(default=None, description="Describe what kind of information the source focuses on")
     type: Optional[SourceType] = Field(default=None, description="Type of the monitoring source such as 'website', 'twitter', 'telegram'")
     url: Optional[str] = Field(default=None, description="URL of the monitoring source")
+    reliability: Optional[float] = Field(default=None, description="Reliability score of the monitoring source, ranging from 0 to 100")
     attributes: Optional[Dict[str, Any]] = Field(
         default=None,
         description="Platform-specific identifiers or handles required to monitor the source via API calls. Examples include a Twitter user id or a Telegram channel ID.",
