@@ -1,9 +1,8 @@
 import logging
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.cacher import Cacher
-from omni_python_library.models.common import Permissive
 from omni_python_library.models.monitor import MonitoringSource, MonitoringSourceMainData
 
 logger = logging.getLogger(__name__)

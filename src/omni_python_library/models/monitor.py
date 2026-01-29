@@ -6,11 +6,11 @@ from omni_python_library.models.common import ArangoData
 
 
 class MonitoringSourceMainData(BaseModel):
-    name: str = Field(description="Name of the monitoring source")
-    type: str = Field(description="Type of the monitoring source such as 'website', 'news site', 'twitter', 'telegram'")
-    url: str = Field(description="URL of the monitoring source")
-    attributes: Dict[str, Any] = Field(
-        default={},
+    name: Optional[str] = Field(default=None, description="Name of the monitoring source")
+    type: Optional[str] = Field(default=None, description="Type of the monitoring source such as 'website', 'news site', 'twitter', 'telegram'")
+    url: Optional[str] = Field(default=None, description="URL of the monitoring source")
+    attributes: Optional[Dict[str, Any]] = Field(
+        default=None,
         description="Platform-specific identifiers or handles required to monitor the source via API calls. Examples include a Twitter username handle (e.g., 'elonmusk'), a Telegram channel ID, or a news site URL (e.g., 'https://www.cnn.com').",
     )
 
