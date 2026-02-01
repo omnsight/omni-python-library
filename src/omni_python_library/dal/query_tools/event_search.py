@@ -2,8 +2,9 @@ from typing import Annotated, List, Optional, Tuple, Union
 
 from pydantic import Field
 
-from omni_python_library.dal.osint_data_access_layer import EVENT_GRAPH_NAME, OsintDataAccessLayer
+from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import Event, Relation
+from omni_python_library.utils import ArangoDBConstant
 
 
 def search_events(
@@ -65,7 +66,7 @@ def search_events(
     LET event_ids = events[*]._id
     LET relations = (
         FOR event IN events
-            FOR v, e IN 1..1 ANY event GRAPH '{EVENT_GRAPH_NAME}'
+            FOR v, e IN 1..1 ANY event GRAPH '{ArangoDBConstant.EVENT_GRAPH}'
             FILTER e._from IN event_ids AND e._to IN event_ids
             RETURN DISTINCT e
     )

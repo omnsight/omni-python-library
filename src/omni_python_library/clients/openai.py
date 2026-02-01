@@ -2,6 +2,7 @@ from typing import Dict, Optional, Tuple
 
 from openai import OpenAI
 
+from omni_python_library.utils import BadParameterError, InternalError
 from omni_python_library.utils.singleton import Singleton
 
 
@@ -30,9 +31,11 @@ class OpenAIClient(Singleton):
         try:
             available_models = [m.id for m in client.models.list().data]
             if model not in available_models:
-                raise ValueError(f"Model '{model}' not found. Available models: {available_models}")
+                raise BadParameterError(f"Model '{model}' not found. Available models: {available_models}")
+        except BadParameterError:
+            raise
         except Exception as e:
-            raise ValueError(f"Failed to verify model '{model}': {str(e)}")
+            raise InternalError(f"Failed to verify model '{model}'") from e
 
         self._clients[model_use] = (client, model)
 

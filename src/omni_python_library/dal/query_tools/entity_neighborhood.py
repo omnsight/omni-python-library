@@ -2,8 +2,9 @@ from typing import Annotated, List, Union
 
 from pydantic import Field
 
-from omni_python_library.dal.osint_data_access_layer import EVENT_RELATED_GRAPH_NAME, OsintDataAccessLayer
-from omni_python_library.models.osint import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
+from omni_python_library.models import Event, Organization, Person, Relation, Source, Website
+from omni_python_library.utils import ArangoDBConstant
 
 
 def search_entity_neighborhood(
@@ -18,7 +19,7 @@ def search_entity_neighborhood(
     :return: A list of entities found 1 edge away.
     """
     query = f"""
-    FOR v, e IN 1..1 ANY @entity_id GRAPH '{EVENT_RELATED_GRAPH_NAME}'
+    FOR v, e IN 1..1 ANY @entity_id GRAPH '{ArangoDBConstant.EVENT_RELATED_GRAPH}'
         LIMIT @limit
         RETURN v
     """

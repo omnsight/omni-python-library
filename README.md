@@ -13,7 +13,7 @@ uv sync --extra dev
 Upgrade dependencies:
 ```bash
 uv lock --upgrade
-uv sync
+uv sync --extra dev
 ```
 
 Run the application:

@@ -2,19 +2,18 @@ import json
 import logging
 from typing import Any, Optional
 
-from cachetools import LRUCache
+from cachetools import TTLCache
 
 from omni_python_library.clients.redis import RedisClient
-from omni_python_library.utils.singleton import Singleton
+from omni_python_library.utils import InternalError, Singleton
 
 logger = logging.getLogger(__name__)
 
 
 class Cacher(Singleton):
-    def init(self):
+    def init(self, expiration_seconds: int = 5):
         super().init()
-        self._local_cache: LRUCache = LRUCache(maxsize=1000)
-        self._redis_client = RedisClient().client
+        self._local_cache: TTLCache = TTLCache(maxsize=1000, ttl=expiration_seconds)
 
     def get(self, key: str) -> Optional[Any]:
         # Check local cache first
@@ -35,10 +34,8 @@ class Cacher(Singleton):
                 # Populate local cache
                 self._local_cache[key] = data
                 return data
-        except Exception:
-            logger.exception(f"Error getting key {key} from Redis")
-            # Fallback or log error
-            pass
+        except Exception as e:
+            raise InternalError(f"Error getting key {key} from Redis") from e
 
         return None
 
@@ -54,9 +51,8 @@ class Cacher(Singleton):
             else:
                 val_str = str(value)
             RedisClient().client.setex(key, ttl, val_str)
-        except Exception:
-            logger.exception(f"Error setting key {key} in Redis")
-            pass
+        except Exception as e:
+            raise InternalError(f"Error setting key {key} in Redis") from e
 
     def expel(self, key: str):
         logger.debug(f"Expelling key: {key}")
@@ -64,9 +60,8 @@ class Cacher(Singleton):
             del self._local_cache[key]
         try:
             RedisClient().client.delete(key)
-        except Exception:
-            logger.exception(f"Error deleting key {key} from Redis")
-            pass
+        except Exception as e:
+            raise InternalError(f"Error deleting key {key} from Redis") from e
 
     def clear_local(self):
         logger.debug("Clearing local cache")
@@ -76,6 +71,5 @@ class Cacher(Singleton):
         logger.debug("Clearing Redis cache")
         try:
             RedisClient().client.flushdb()
-        except Exception:
-            logger.exception("Error flushing Redis db")
-            pass
+        except Exception as e:
+            raise InternalError("Error flushing Redis db") from e
