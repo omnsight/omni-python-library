@@ -1,9 +1,10 @@
 version: '3.8'
 services:
   arangodb:
-    image: arangodb/arangodb:3.11
+    image: arangodb/arangodb:3.12
+    command: arangod --experimental-vector-index
     environment:
-      - ARANGO_NO_AUTH=1
+      - ARANGO_ROOT_PASSWORD=password
     ports:
       - "8529:8529"
 

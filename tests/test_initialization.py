@@ -55,7 +55,7 @@ class TestInitialization(unittest.TestCase):
         mock_arango_client_cls.assert_called_once_with(hosts="http://localhost:8529")
         mock_client_instance.db.assert_called_once_with("test_db", username="root", password="pw")
 
-    @patch("omni_python_library.dal.cacher.RedisClient")
+    @patch("omni_python_library.dal.base.cacher.RedisClient")
     @patch("omni_python_library.dal.osint_data_access_layer.ArangoDBClient")
     def test_dal_init(self, mock_arango, mock_redis):
         """Test OsintDataAccessLayer initialization."""

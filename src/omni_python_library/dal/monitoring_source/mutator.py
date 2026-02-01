@@ -32,8 +32,8 @@ class MonitoringSourceDataMutator(MonitoringSourceFetcher):
 
         relation_data = RelationMainData(
             name="includes",
-            from_id=monitoring_source_id,
-            to_id=view_id,
+            from_id=view_id,
+            to_id=monitoring_source_id,
             created_at=int(time.time() * 1000),
         )
 

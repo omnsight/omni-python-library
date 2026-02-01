@@ -13,9 +13,9 @@ class ViewDataFetcher(ArangoOperator):
     def init(self):
         super().init()
 
-    def get_view(self, id: str) -> Optional[OsintView]:
+    def get_view(self, id: str, owner: str = None, roles: List[str] = []) -> Optional[OsintView]:
         logger.debug(f"Getting view {id}")
-        doc = self._get_from_arango(id)
+        doc = self._get_from_arango(id, owner=owner, roles=roles)
         if doc:
             return OsintView(**doc)
         return None

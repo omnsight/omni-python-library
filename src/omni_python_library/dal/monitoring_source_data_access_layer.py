@@ -20,8 +20,19 @@ class MonitoringSourceDataAccessLayer(
         super().__init__()
         ArangoDBClient().init_collection(
             EntityNameConstant.MONITORING_SOURCE,
-            indices=[("inverted", "name"), ("inverted", "type")],
+            indices=[],
             vector_index=False,
+        )
+        ArangoDBClient().init_view(
+            "monitoringsource_view",
+            {
+                "links": {
+                    EntityNameConstant.MONITORING_SOURCE: {
+                        "analyzers": ["text_en", "identity"],
+                        "includeAllFields": True,
+                    }
+                }
+            },
         )
 
     def query_monitoring_sources(self, text: str, user_id: str, limit: int = 100) -> List[MonitoringSource]:
@@ -29,7 +40,7 @@ class MonitoringSourceDataAccessLayer(
 
         query = f"""
             LET terms = TOKENS(@text, "text_en")
-            FOR doc IN {EntityNameConstant.MONITORING_SOURCE}
+            FOR doc IN monitoringsource_view
                 SEARCH ANALYZER(
                     MIN_MATCH(
                         doc.name IN terms,
@@ -38,7 +49,7 @@ class MonitoringSourceDataAccessLayer(
                     ),
                     "text_en"
                 )
-                FILTER doc.user_id == @user_id
+                FILTER doc.owner == @user_id
                 LIMIT @limit
                 RETURN doc
         """
@@ -52,4 +63,4 @@ class MonitoringSourceDataAccessLayer(
                     results.append(MonitoringSource(**doc))
             return results
         except Exception as e:
-            raise InternalError("Error querying monitoring sources by text") from e
+            raise InternalError(f"Error querying monitoring sources by text: {e}") from e

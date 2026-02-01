@@ -11,6 +11,7 @@ from omni_python_library.dal.query_tools.entity_neighborhood import search_entit
 from omni_python_library.dal.query_tools.event_search import search_events
 from omni_python_library.models.osint import EventMainData, LocationData, PersonMainData, RelationMainData
 from omni_python_library.utils.singleton import Singleton
+from omni_python_library.utils.user import UserRole
 
 
 class TestQueryTools(unittest.TestCase):
@@ -32,7 +33,7 @@ class TestQueryTools(unittest.TestCase):
         # Initialize ArangoDB
         try:
             sys_client = PyArangoClient(hosts="http://localhost:8529")
-            sys_db = sys_client.db("_system", username="root", password="")
+            sys_db = sys_client.db("_system", username="root", password="password")
 
             if sys_db.has_database("test_osint_db_query"):
                 sys_db.delete_database("test_osint_db_query")
@@ -40,7 +41,7 @@ class TestQueryTools(unittest.TestCase):
             sys_db.create_database("test_osint_db_query")
 
             ArangoDBClient().init(
-                host="http://localhost:8529", username="root", password="", db_name="test_osint_db_query"
+                host="http://localhost:8529", username="root", password="password", db_name="test_osint_db_query"
             )
         except Exception as e:
             print(f"ArangoDB not available: {e}")
@@ -85,22 +86,22 @@ class TestQueryTools(unittest.TestCase):
         )
 
         e1_data = EventMainData(title="Event 1", description="First event", happened_at=1000, location=loc_us)
-        e1 = self.dal.create_event(e1_data, owner="test")
+        e1 = self.dal.create_event(e1_data, owner="test", roles=[UserRole.ADMIN])
 
         e2_data = EventMainData(title="Event 2", description="Second event", happened_at=2000, location=loc_us)
-        e2 = self.dal.create_event(e2_data, owner="test")
+        e2 = self.dal.create_event(e2_data, owner="test", roles=[UserRole.ADMIN])
 
         e3_data = EventMainData(
             title="Event 3", description="Third event (unrelated)", happened_at=3000, location=loc_uk
         )
-        e3 = self.dal.create_event(e3_data, owner="test")
+        e3 = self.dal.create_event(e3_data, owner="test", roles=[UserRole.ADMIN])
 
         # Create Relation between E1 and E2
         # Note: We need to use a name that will be picked up by the graph logic.
         # Based on OsintDataAccessLayer.init, EVENT_GRAPH_NAME logic seems tricky.
         # But let's try with "link" and see if it works, or if we need to fix the DAL.
         rel_data = RelationMainData(name="link", from_id=e1.id, to_id=e2.id, label="related_to")
-        self.dal.create_relation(rel_data, owner="test")
+        self.dal.create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
 
         # Search events (filter by country US to get E1 and E2)
         results = search_events(country_code="US")
@@ -121,11 +122,11 @@ class TestQueryTools(unittest.TestCase):
     def test_search_entity_neighborhood(self):
         # Create Person
         p_data = PersonMainData(name="Alice", role="Analyst")
-        p = self.dal.create_person(p_data, owner="test")
+        p = self.dal.create_person(p_data, owner="test", roles=[UserRole.ADMIN])
 
         # Create Event
         e_data = EventMainData(title="Incident A", happened_at=5000)
-        e = self.dal.create_event(e_data, owner="test")
+        e = self.dal.create_event(e_data, owner="test", roles=[UserRole.ADMIN])
 
         # Create Relation Person -> Event
         # This should be in EVENT_RELATED_GRAPH_NAME
@@ -135,7 +136,7 @@ class TestQueryTools(unittest.TestCase):
         # Note: EVENT_RELATED_GRAPH_NAME logic in DAL: from_coll == EVENT_COLLECTION_NAME and to_coll != EVENT_COLLECTION_NAME
         # So we must go FROM Event TO Person for it to be added to the graph automatically.
 
-        self.dal.create_relation(rel_data, owner="test")
+        self.dal.create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
 
         # Search neighborhood of Event
         results = search_entity_neighborhood(e.id)

@@ -7,6 +7,7 @@ from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import Person, PersonMainData
 from omni_python_library.utils.singleton import Singleton
+from omni_python_library.utils.user import UserRole
 
 # This test suite assumes a running ArangoDB and Redis instance (via docker-compose)
 # We skip these tests if the services aren't available to avoid failing CI without docker.
@@ -35,7 +36,7 @@ class TestCRUD(unittest.TestCase):
         try:
             # Create DB if not exists using direct client to avoid initializing collections in _system
             sys_client = PyArangoClient(hosts="http://localhost:8529")
-            sys_db = sys_client.db("_system", username="root", password="")
+            sys_db = sys_client.db("_system", username="root", password="password")
 
             # Drop existing DB to ensure clean state
             if sys_db.has_database("test_osint_db"):
@@ -44,7 +45,9 @@ class TestCRUD(unittest.TestCase):
             sys_db.create_database("test_osint_db")
 
             # Now initialize the application client
-            ArangoDBClient().init(host="http://localhost:8529", username="root", password="", db_name="test_osint_db")
+            ArangoDBClient().init(
+                host="http://localhost:8529", username="root", password="password", db_name="test_osint_db"
+            )
         except Exception as e:
             print(f"ArangoDB not available: {e}")
             raise unittest.SkipTest("ArangoDB service not available. Skipping integration tests.")
@@ -71,30 +74,32 @@ class TestCRUD(unittest.TestCase):
         # We use a try-except block because if the DB isn't running, this will fail.
         # Ideally we'd skip, but let's try to run it.
         try:
-            created = self.dal.create_person(person_data, owner="test_user")
+            created = self.dal.create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
             self.assertIsNotNone(created)
             self.assertEqual(created.name, "John Doe")
 
             # Read
-            fetched = self.dal.get_person(created.id)
+            fetched = self.dal.get_person(created.id, owner="test_user", roles=[UserRole.ADMIN])
             self.assertIsNotNone(fetched)
             self.assertEqual(fetched.name, "John Doe")
             self.assertEqual(fetched.role, "Engineer")
 
             # Update
-            updated = self.dal.update_person(created.id, PersonMainData(role="Senior Engineer"))
+            updated = self.dal.update_person(
+                created.id, PersonMainData(role="Senior Engineer"), owner="test_user", roles=[UserRole.ADMIN]
+            )
             self.assertEqual(updated.role, "Senior Engineer")
 
             # Read again (should hit cache or DB)
-            fetched_updated = self.dal.get_person(created.id)
+            fetched_updated = self.dal.get_person(created.id, owner="test_user", roles=[UserRole.ADMIN])
             self.assertEqual(fetched_updated.role, "Senior Engineer")
 
             # Delete
-            deleted = self.dal.delete_entity(created.id)
+            deleted = self.dal.delete_entity(created.id, owner="test_user", roles=[UserRole.ADMIN])
             self.assertTrue(deleted)
 
             # Verify Delete
-            fetched_deleted = self.dal.get_person(created.id)
+            fetched_deleted = self.dal.get_person(created.id, owner="test_user", roles=[UserRole.ADMIN])
             self.assertIsNone(fetched_deleted)
 
         except Exception as e:

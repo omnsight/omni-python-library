@@ -84,14 +84,14 @@ class ArangoOperator(Cacher):
         except Exception as e:
             raise InternalError(f"Error updating document {id}") from e
 
-    def _delete_in_arango(self, id: str, owner: Optional[str] = None) -> bool:
+    def _delete_in_arango(self, id: str, owner: Optional[str] = None, roles: List[str] = []) -> bool:
         doc = self._raw_fetch(id)
         if not doc:
             raise NotFoundError(f"Document {id} not found")
 
         doc_owner = doc.get("owner")
         # Check if owner matches
-        if not self._check_auth(owner, [], [], doc_owner):
+        if not self._check_auth(owner, roles, [], doc_owner):
             raise PermissionDeniedError(f"Permission denied to delete document {id}. User: {owner}, Owner: {doc_owner}")
 
         try:

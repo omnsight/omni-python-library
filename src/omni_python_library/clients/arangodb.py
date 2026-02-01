@@ -48,14 +48,22 @@ class ArangoDBClient(Singleton):
             )
 
         if vector_index:
-            col.add_index(
-                {
-                    "type": "vector",
-                    "fields": ["embedding"],
-                    "dimension": self._embedding_dimension,
-                    "metric": "cosine",
-                }
-            )
+            try:
+                col.add_index(
+                    {
+                        "type": "vector",
+                        "fields": ["embedding"],
+                        "params": {
+                            "dimension": self._embedding_dimension,
+                            "metric": "cosine",
+                            "nLists": 5,
+                        },
+                    }
+                )
+            except Exception as e:
+                # ArangoDB 3.12+ requires data to exist for vector index creation.
+                # If the collection is empty, this will fail. We log and continue.
+                print(f"Warning: Failed to create vector index on '{col_name}': {e}")
 
         self._collections[col_name] = col
         return col

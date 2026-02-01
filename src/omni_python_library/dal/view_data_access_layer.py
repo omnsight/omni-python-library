@@ -14,9 +14,22 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
         super().__init__()
         ArangoDBClient().init_collection(
             EntityNameConstant.VIEW,
-            indices=[("inverted", "name"), ("inverted", "description")],
+            indices=[],
             vector_index=False,
         )
+        # Create inverted index with text_en analyzer for search
+        try:
+            col = ArangoDBClient().get_collection(EntityNameConstant.VIEW)
+            col.add_index(
+                {
+                    "type": "inverted",
+                    "fields": ["name", "description"],
+                    "analyzer": "text_en",
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create inverted index on {EntityNameConstant.VIEW}: {e}")
+
         ArangoDBClient().init_graph(
             ArangoDBConstant.VIEW_GRAPH,
             lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None,
@@ -25,17 +38,10 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
     def query_views(self, text: str, owner: str, lang: str = "en", limit: int = 100) -> List[OsintView]:
         logger.debug(f"Querying views by text: {text} and owner: {owner}")
 
+        # Use FILTER instead of SEARCH to avoid "collection or view not found" error with inverted index
         query = f"""
-            LET terms = TOKENS(@text, "text_{lang}")
             FOR doc IN {EntityNameConstant.VIEW}
-                SEARCH ANALYZER(
-                    MIN_MATCH(
-                        doc.name IN terms,
-                        doc.description IN terms,
-                        LENGTH(terms)
-                    ),
-                    "text_{lang}"
-                )
+                FILTER (CONTAINS(LOWER(doc.name), LOWER(@text)) OR CONTAINS(LOWER(doc.description), LOWER(@text)))
                 FILTER doc.owner == @owner
                 LIMIT @limit
                 RETURN doc
@@ -50,4 +56,5 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
                     results.append(OsintView(**doc))
             return results
         except Exception as e:
-            raise InternalError("Error querying views by text") from e
+            logger.error(f"Error executing AQL: {e}")
+            raise InternalError(f"Error querying views by text: {e}") from e

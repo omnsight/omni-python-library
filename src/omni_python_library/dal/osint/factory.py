@@ -26,7 +26,7 @@ class OsintDataFactory(ArangoOperator):
     def init(self):
         super().init()
 
-    def create_relation(self, data: RelationMainData, owner: str) -> Relation:
+    def create_relation(self, data: RelationMainData, owner: str, roles: List[str] = []) -> Relation:
         logger.debug(f"Creating relation: {data} with owner: {owner}")
         src_col_name, _ = ArangoDBClient().parse_id(data.from_id)
         to_col_name, _ = ArangoDBClient().parse_id(data.to_id)
@@ -40,6 +40,7 @@ class OsintDataFactory(ArangoOperator):
             collection,
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             owner=owner,
+            roles=roles,
         )
         return Relation(
             id=doc["_id"],
@@ -50,7 +51,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_event(self, data: EventMainData, owner: str) -> Event:
+    def create_event(self, data: EventMainData, owner: str, roles: List[str] = []) -> Event:
         logger.debug(f"Creating event: {data} with owner: {owner}")
         parts = [data.title, data.description, data.type]
         if data.location:
@@ -61,6 +62,7 @@ class OsintDataFactory(ArangoOperator):
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             embedding=self.generate_embedding(text),
             owner=owner,
+            roles=roles,
         )
         return Event(
             id=doc["_id"],
@@ -69,7 +71,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_source(self, data: SourceMainData, owner: str) -> Source:
+    def create_source(self, data: SourceMainData, owner: str, roles: List[str] = []) -> Source:
         logger.debug(f"Creating source: {data} with owner: {owner}")
         text = f"{data.title} {data.description} {data.name} {data.url}"
         doc = self._create_in_arango(
@@ -77,6 +79,7 @@ class OsintDataFactory(ArangoOperator):
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             embedding=self.generate_embedding(text),
             owner=owner,
+            roles=roles,
         )
         return Source(
             id=doc["_id"],
@@ -85,7 +88,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_person(self, data: PersonMainData, owner: str) -> Person:
+    def create_person(self, data: PersonMainData, owner: str, roles: List[str] = []) -> Person:
         logger.debug(f"Creating person: {data} with owner: {owner}")
         aliases = " ".join(data.aliases) if data.aliases else ""
         text = f"{data.name} {data.role} {data.nationality} {aliases}"
@@ -94,6 +97,7 @@ class OsintDataFactory(ArangoOperator):
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             embedding=self.generate_embedding(text),
             owner=owner,
+            roles=roles,
         )
         return Person(
             id=doc["_id"],
@@ -102,7 +106,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_organization(self, data: OrganizationMainData, owner: str) -> Organization:
+    def create_organization(self, data: OrganizationMainData, owner: str, roles: List[str] = []) -> Organization:
         logger.debug(f"Creating organization: {data} with owner: {owner}")
         tags = " ".join(data.tags) if data.tags else ""
         text = f"{data.name} {data.type} {tags}"
@@ -111,6 +115,7 @@ class OsintDataFactory(ArangoOperator):
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             embedding=self.generate_embedding(text),
             owner=owner,
+            roles=roles,
         )
         return Organization(
             id=doc["_id"],
@@ -119,7 +124,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_website(self, data: WebsiteMainData, owner: str) -> Website:
+    def create_website(self, data: WebsiteMainData, owner: str, roles: List[str] = []) -> Website:
         logger.debug(f"Creating website: {data} with owner: {owner}")
         text = f"{data.title} {data.description} {data.url}"
         doc = self._create_in_arango(
@@ -127,6 +132,7 @@ class OsintDataFactory(ArangoOperator):
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             embedding=self.generate_embedding(text),
             owner=owner,
+            roles=roles,
         )
         return Website(
             id=doc["_id"],
