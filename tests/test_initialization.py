@@ -27,14 +27,16 @@ class TestInitialization(unittest.TestCase):
     def test_redis_client_init(self, mock_redis):
         """Test RedisClient initialization."""
         client = RedisClient()
-        client.init(host="localhost", port=6379, db=0, password="pass")
+        client.init(host="localhost", port=6379, password="pass")
 
         self.assertEqual(client._host, "localhost")
         self.assertEqual(client._port, 6379)
-        self.assertEqual(client._db, 0)
         self.assertEqual(client._password, "pass")
 
-        mock_redis.assert_called_once_with(host="localhost", port=6379, db=0, password="pass", decode_responses=True)
+        self.assertEqual(mock_redis.call_count, 3)
+        mock_redis.assert_any_call(host="localhost", port=6379, db=0, password="pass", decode_responses=True)
+        mock_redis.assert_any_call(host="localhost", port=6379, db=1, password="pass", decode_responses=True)
+        mock_redis.assert_any_call(host="localhost", port=6379, db=2, password="pass", decode_responses=True)
 
     @patch("omni_python_library.clients.arangodb.ArangoClient")
     def test_arangodb_client_init(self, mock_arango_client_cls):

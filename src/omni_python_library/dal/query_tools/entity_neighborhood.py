@@ -1,6 +1,4 @@
-from typing import Annotated, List, Union
-
-from pydantic import Field
+from typing import List, Union
 
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models import Event, Organization, Person, Relation, Source, Website
@@ -8,8 +6,9 @@ from omni_python_library.utils import ArangoDBConstant
 
 
 def search_entity_neighborhood(
-    entity_id: Annotated[str, Field(description="The ID of the entity to start the search from.")],
-    limit: Annotated[int, Field(description="Maximum number of entities to return.", ge=1, default=50)] = 50,
+    entity_id: str,
+    limit: int = 50,
+    in_pending: bool = False,
 ) -> List[Union[Relation, Event, Source, Person, Organization, Website]]:
     """
     Searches for all types of entities 1 edge away from the given entity ID.
@@ -24,4 +23,6 @@ def search_entity_neighborhood(
         RETURN v
     """
 
-    return OsintDataAccessLayer().query(query, bind_vars={"entity_id": entity_id, "limit": limit})
+    return OsintDataAccessLayer().query(
+        query, bind_vars={"entity_id": entity_id, "limit": limit}, in_pending=in_pending
+    )

@@ -21,26 +21,25 @@ class TestViewCRUD(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         Singleton._instances = {}
-        try:
-            RedisClient().init(host="localhost", port=6379, db=0)
-            RedisClient().client.flushdb()
-        except Exception as e:
-            print(f"Redis not available: {e}")
-            raise unittest.SkipTest("Redis service not available")
 
-        try:
-            sys_client = PyArangoClient(hosts="http://localhost:8529")
-            sys_db = sys_client.db("_system", username="root", password="password")
-            if sys_db.has_database("test_osint_db_view"):
-                sys_db.delete_database("test_osint_db_view")
-            sys_db.create_database("test_osint_db_view")
+        RedisClient().init(host="localhost", port=6379)
+        # Clear Redis
+        RedisClient().client.flushdb()
 
-            ArangoDBClient().init(
-                host="http://localhost:8529", username="root", password="password", db_name="test_osint_db_view"
-            )
-        except Exception as e:
-            print(f"ArangoDB not available: {e}")
-            raise unittest.SkipTest("ArangoDB service not available")
+        # Create DB if not exists using direct client to avoid initializing collections in _system
+        sys_client = PyArangoClient(hosts="http://localhost:8529")
+        sys_db = sys_client.db("_system", username="root", password="password")
+
+        # Drop existing DB to ensure clean state
+        if sys_db.has_database("test_osint_db"):
+            sys_db.delete_database("test_osint_db")
+
+        sys_db.create_database("test_osint_db")
+
+        # Now initialize the application client
+        ArangoDBClient().init(
+            host="http://localhost:8529", username="root", password="password", db_name="test_osint_db"
+        )
 
     def setUp(self):
         self.dal = ViewDataAccessLayer()

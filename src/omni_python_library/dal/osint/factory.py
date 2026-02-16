@@ -1,7 +1,7 @@
 import logging
-from typing import List, Optional, Union
+from typing import List
 
-from omni_python_library.clients import ArangoDBClient, OpenAIClient
+from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.base import ArangoOperator
 from omni_python_library.models import (
     Event,
@@ -17,7 +17,7 @@ from omni_python_library.models import (
     Website,
     WebsiteMainData,
 )
-from omni_python_library.utils import EntityNameConstant, InternalError, LLMConstant
+from omni_python_library.utils import EntityNameConstant
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,9 @@ class OsintDataFactory(ArangoOperator):
     def init(self):
         super().init()
 
-    def create_relation(self, data: RelationMainData, owner: str, roles: List[str] = []) -> Relation:
+    def create_relation(
+        self, data: RelationMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+    ) -> Relation:
         logger.debug(f"Creating relation: {data} with owner: {owner}")
         src_col_name, _ = ArangoDBClient().parse_id(data.from_id)
         to_col_name, _ = ArangoDBClient().parse_id(data.to_id)
@@ -36,12 +38,22 @@ class OsintDataFactory(ArangoOperator):
             to_coll=to_col_name,
         )
 
-        doc = self._create_in_arango(
-            collection,
-            data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            owner=owner,
-            roles=roles,
-        )
+        if in_pending:
+            doc = self._create_in_arango(
+                collection,
+                {"name": data.name, "from_id": data.from_id, "to_id": data.to_id},
+                owner=owner,
+                roles=roles,
+                pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
+        else:
+            doc = self._create_in_arango(
+                collection,
+                data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+                owner=owner,
+                roles=roles,
+            )
+
         return Relation(
             id=doc["_id"],
             key=doc["_key"],
@@ -51,19 +63,24 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_event(self, data: EventMainData, owner: str, roles: List[str] = []) -> Event:
+    def create_event(self, data: EventMainData, owner: str, roles: List[str] = [], in_pending: bool = False) -> Event:
         logger.debug(f"Creating event: {data} with owner: {owner}")
-        parts = [data.title, data.description, data.type]
-        if data.location:
-            parts.append(str(data.location.model_dump()))
-        text = " ".join([str(p) for p in parts if p])
-        doc = self._create_in_arango(
-            ArangoDBClient().get_collection(EntityNameConstant.EVENT),
-            data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            embedding=self.generate_embedding(text),
-            owner=owner,
-            roles=roles,
-        )
+        if in_pending:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.EVENT),
+                {"title": data.title},
+                owner=owner,
+                roles=roles,
+                pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
+        else:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.EVENT),
+                data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+                embedding_fields=["title", "description"],
+                owner=owner,
+                roles=roles,
+            )
         return Event(
             id=doc["_id"],
             key=doc["_key"],
@@ -71,16 +88,26 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_source(self, data: SourceMainData, owner: str, roles: List[str] = []) -> Source:
+    def create_source(
+        self, data: SourceMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+    ) -> Source:
         logger.debug(f"Creating source: {data} with owner: {owner}")
-        text = f"{data.title} {data.description} {data.name} {data.url}"
-        doc = self._create_in_arango(
-            ArangoDBClient().get_collection(EntityNameConstant.SOURCE),
-            data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            embedding=self.generate_embedding(text),
-            owner=owner,
-            roles=roles,
-        )
+        if in_pending:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.SOURCE),
+                {"title": data.title},
+                owner=owner,
+                roles=roles,
+                pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
+        else:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.SOURCE),
+                data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+                embedding_fields=["title", "description", "name", "url"],
+                owner=owner,
+                roles=roles,
+            )
         return Source(
             id=doc["_id"],
             key=doc["_key"],
@@ -88,17 +115,26 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_person(self, data: PersonMainData, owner: str, roles: List[str] = []) -> Person:
+    def create_person(
+        self, data: PersonMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+    ) -> Person:
         logger.debug(f"Creating person: {data} with owner: {owner}")
-        aliases = " ".join(data.aliases) if data.aliases else ""
-        text = f"{data.name} {data.role} {data.nationality} {aliases}"
-        doc = self._create_in_arango(
-            ArangoDBClient().get_collection(EntityNameConstant.PERSON),
-            data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            embedding=self.generate_embedding(text),
-            owner=owner,
-            roles=roles,
-        )
+        if in_pending:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.PERSON),
+                {"name": data.name},
+                owner=owner,
+                roles=roles,
+                pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
+        else:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.PERSON),
+                data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+                embedding_fields=["name", "role", "nationality"],
+                owner=owner,
+                roles=roles,
+            )
         return Person(
             id=doc["_id"],
             key=doc["_key"],
@@ -106,17 +142,27 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_organization(self, data: OrganizationMainData, owner: str, roles: List[str] = []) -> Organization:
+    def create_organization(
+        self, data: OrganizationMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+    ) -> Organization:
         logger.debug(f"Creating organization: {data} with owner: {owner}")
-        tags = " ".join(data.tags) if data.tags else ""
-        text = f"{data.name} {data.type} {tags}"
-        doc = self._create_in_arango(
-            ArangoDBClient().get_collection(EntityNameConstant.ORGANIZATION),
-            data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            embedding=self.generate_embedding(text),
-            owner=owner,
-            roles=roles,
-        )
+        if in_pending:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.ORGANIZATION),
+                {"name": data.name},
+                owner=owner,
+                roles=roles,
+                pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
+        else:
+            tags = " ".join(data.tags) if data.tags else ""
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.ORGANIZATION),
+                data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+                embedding_fields=["name", "type", "tags"],
+                owner=owner,
+                roles=roles,
+            )
         return Organization(
             id=doc["_id"],
             key=doc["_key"],
@@ -124,34 +170,29 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_website(self, data: WebsiteMainData, owner: str, roles: List[str] = []) -> Website:
+    def create_website(
+        self, data: WebsiteMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+    ) -> Website:
         logger.debug(f"Creating website: {data} with owner: {owner}")
-        text = f"{data.title} {data.description} {data.url}"
-        doc = self._create_in_arango(
-            ArangoDBClient().get_collection(EntityNameConstant.WEBSITE),
-            data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            embedding=self.generate_embedding(text),
-            owner=owner,
-            roles=roles,
-        )
+        if in_pending:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.WEBSITE),
+                {"url": data.url},
+                owner=owner,
+                roles=roles,
+                pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
+        else:
+            doc = self._create_in_arango(
+                ArangoDBClient().get_collection(EntityNameConstant.WEBSITE),
+                data.model_dump(mode="json", by_alias=True, exclude_unset=True),
+                embedding_fields=["title", "description", "url"],
+                owner=owner,
+                roles=roles,
+            )
         return Website(
             id=doc["_id"],
             key=doc["_key"],
             rev=doc["_rev"],
             **doc,
         )
-
-    def generate_embedding(self, text: Optional[str]) -> Union[List[float] | None]:
-        client_tuple = OpenAIClient().get_client(LLMConstant.EMBEDDING)
-        if not client_tuple or not text:
-            return None
-
-        client, model = client_tuple
-        if not client:
-            return None
-
-        try:
-            response = client.embeddings.create(input=text, model=model)
-            return response.data[0].embedding
-        except Exception as e:
-            raise InternalError("Error generating embedding") from e

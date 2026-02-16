@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from omni_python_library.clients import ArangoDBClient
+from omni_python_library.clients import PENDING_UPDATES, ArangoDBClient
 from omni_python_library.dal.osint import OsintDataDestroyer, OsintDataFactory, OsintDataMutator
 from omni_python_library.models import Event, Organization, Person, Relation, Source, Website
 from omni_python_library.utils import ArangoDBConstant, EntityNameConstant, InternalError
@@ -46,7 +46,10 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
         )
 
     def query(
-        self, query_str: str, bind_vars: Optional[Dict[str, Any]] = None
+        self,
+        query_str: str,
+        bind_vars: Optional[Dict[str, Any]] = None,
+        in_pending: bool = False,
     ) -> List[Union[Relation, Event, Source, Person, Organization, Website]]:
         """
         Executes an AQL query and returns a list of strongly-typed OSINT objects.
@@ -63,25 +66,25 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
             results = []
 
             for doc in cursor:
-                if not isinstance(doc, dict):
+                if not isinstance(doc, dict) or not doc.get("_id"):
                     continue
+
+                pending = self.get(doc["_id"], db=PENDING_UPDATES) or {} if in_pending else {}
 
                 if "_from" in doc and "_to" in doc:
-                    results.append(Relation(**doc))
-                    continue
-
-                if "_id" in doc:
+                    results.append(Relation(**{**doc, **pending}))
+                else:
                     col_name, _ = ArangoDBClient().parse_id(doc["_id"])
-                    if col_name == "person":
-                        results.append(Person(**doc))
-                    elif col_name == "organization":
-                        results.append(Organization(**doc))
-                    elif col_name == "website":
-                        results.append(Website(**doc))
-                    elif col_name == "source":
-                        results.append(Source(**doc))
-                    elif col_name == "event":
-                        results.append(Event(**doc))
+                    if col_name == EntityNameConstant.PERSON:
+                        results.append(Person(**{**doc, **pending}))
+                    elif col_name == EntityNameConstant.ORGANIZATION:
+                        results.append(Organization(**{**doc, **pending}))
+                    elif col_name == EntityNameConstant.WEBSITE:
+                        results.append(Website(**{**doc, **pending}))
+                    elif col_name == EntityNameConstant.SOURCE:
+                        results.append(Source(**{**doc, **pending}))
+                    elif col_name == EntityNameConstant.EVENT:
+                        results.append(Event(**{**doc, **pending}))
 
             logger.debug(f"Query returned {len(results)} results")
             return results

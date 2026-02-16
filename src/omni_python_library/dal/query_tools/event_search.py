@@ -1,6 +1,4 @@
-from typing import Annotated, List, Optional, Tuple, Union
-
-from pydantic import Field
+from typing import List, Optional, Tuple, Union
 
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import Event, Relation
@@ -8,16 +6,11 @@ from omni_python_library.utils import ArangoDBConstant
 
 
 def search_events(
-    text: Annotated[
-        Optional[str],
-        Field(description="Text to search for using vector search against the embedding field."),
-    ] = None,
-    date_range: Annotated[
-        Optional[Tuple[Optional[int], Optional[int]]],
-        Field(description="Tuple of (start_timestamp, end_timestamp)."),
-    ] = None,
-    country_code: Annotated[Optional[str], Field(description="ISO country code to filter by.")] = None,
-    limit: Annotated[int, Field(description="Maximum number of events to return.", ge=1, default=50)] = 50,
+    text: Optional[str] = None,
+    date_range: Optional[Tuple[Optional[int], Optional[int]]] = None,
+    country_code: Optional[str] = None,
+    limit: int = 50,
+    in_pending: bool = False,
 ) -> List[Union[Event, Relation]]:
     """
     Queries events and their connecting relations using Vector Search.
@@ -75,4 +68,4 @@ def search_events(
         RETURN result
     """
 
-    return OsintDataAccessLayer().query(query, bind_vars=bind_vars)
+    return OsintDataAccessLayer().query(query, bind_vars=bind_vars, in_pending=in_pending)

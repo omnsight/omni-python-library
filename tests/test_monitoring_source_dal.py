@@ -20,27 +20,22 @@ class TestMonitoringSourceDAL(unittest.TestCase):
         # Assuming defaults from docker-compose
         Singleton._instances = {}
 
-        try:
-            # Create DB if not exists using direct client to avoid initializing collections in _system
-            sys_client = PyArangoClient(hosts="http://localhost:8529")
-            sys_db = sys_client.db("_system", username="root", password="password")
+        # Create DB if not exists using direct client to avoid initializing collections in _system
+        sys_client = PyArangoClient(hosts="http://localhost:8529")
+        sys_db = sys_client.db("_system", username="root", password="password")
 
-            # Drop existing DB to ensure clean state
-            if sys_db.has_database("test_osint_db_dal"):
-                sys_db.delete_database("test_osint_db_dal")
+        # Drop existing DB to ensure clean state
+        if sys_db.has_database("test_osint_db_dal"):
+            sys_db.delete_database("test_osint_db_dal")
 
-            sys_db.create_database("test_osint_db_dal")
+        sys_db.create_database("test_osint_db_dal")
 
-            # Now initialize the application client
-            client = ArangoDBClient()
-            client.init(host="http://localhost:8529", username="root", password="password", db_name="test_osint_db_dal")
+        # Now initialize the application client
+        client = ArangoDBClient()
+        client.init(host="http://localhost:8529", username="root", password="password", db_name="test_osint_db_dal")
 
-            # Initialize Redis
-            RedisClient().init(host="localhost", port=6379, db=0)
-            RedisClient().client.flushdb()
-        except Exception as e:
-            print(f"ArangoDB not available: {e}")
-            raise unittest.SkipTest("ArangoDB service not available. Skipping integration tests.")
+        RedisClient().init(host="localhost", port=6379)
+        RedisClient().client.flushdb()
 
     def setUp(self):
         self.dal = MonitoringSourceDataAccessLayer()
