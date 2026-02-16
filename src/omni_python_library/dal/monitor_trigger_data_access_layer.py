@@ -38,7 +38,7 @@ class MonitorTriggerDataAccessLayer:
         triggers = []
         for data in results:
             if data:
-                decoded_data = {k.decode('utf-8'): v.decode('utf-8') for k, v in data.items()}
+                decoded_data = {k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()}
                 triggers.append(MonitorTrigger(**decoded_data))
         return triggers
 
@@ -46,5 +46,5 @@ class MonitorTriggerDataAccessLayer:
         data = RedisClient().monitoring_client.hgetall(self._get_trigger_key(user_id))
         if not data:
             return None
-        decoded_data = {k.decode('utf-8'): v.decode('utf-8') for k, v in data.items()}
+        decoded_data = {k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()}
         return MonitorTrigger(**decoded_data)

@@ -14,8 +14,7 @@ class Cacher(Singleton):
     def init(self, expiration_seconds: int = 5):
         super().init()
         self._local_caches: Dict[int, TTLCache] = {
-            db: TTLCache(maxsize=1000, ttl=expiration_seconds)
-            for db in [CACHER, PENDING_UPDATES, MONITORING]
+            db: TTLCache(maxsize=1000, ttl=expiration_seconds) for db in [CACHER, PENDING_UPDATES, MONITORING]
         }
 
     def get(self, key: str, db: int = 0) -> Optional[Any]:

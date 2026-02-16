@@ -150,9 +150,7 @@ class TestCRUD(unittest.TestCase):
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
-        created = self.dal.create_event(
-            event_data, owner="test_user_event", roles=[UserRole.ADMIN], in_pending=True
-        )
+        created = self.dal.create_event(event_data, owner="test_user_event", roles=[UserRole.ADMIN], in_pending=True)
         self.assertIsNotNone(created)
         self.assertEqual(created.title, "Cyber Summit 2024")
 
