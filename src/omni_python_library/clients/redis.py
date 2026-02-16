@@ -1,6 +1,5 @@
 from typing import Optional
-
-import redis
+from redis import Redis
 
 from omni_python_library.utils.singleton import Singleton
 
@@ -16,28 +15,28 @@ class RedisClient(Singleton):
         self._password = password
 
         self._clients = {
-            CACHER: redis.Redis(
+            CACHER: Redis(
                 host=self._host, port=self._port, db=CACHER, password=self._password, decode_responses=True
             ),
-            PENDING_UPDATES: redis.Redis(
+            PENDING_UPDATES: Redis(
                 host=self._host, port=self._port, db=PENDING_UPDATES, password=self._password, decode_responses=True
             ),
-            MONITORING: redis.Redis(
+            MONITORING: Redis(
                 host=self._host, port=self._port, db=MONITORING, password=self._password, decode_responses=True
             ),
         }
 
     @property
-    def client(self):
+    def client(self) -> Redis:
         return self._clients[CACHER]
 
     @property
-    def pending_updates_client(self):
+    def pending_updates_client(self) -> Redis:
         return self._clients[PENDING_UPDATES]
 
     @property
-    def monitoring_client(self):
+    def monitoring_client(self) -> Redis:
         return self._clients[MONITORING]
 
-    def get_client(self, db: int = CACHER):
+    def get_client(self, db: int = CACHER) -> Redis:
         return self._clients[db]

@@ -24,6 +24,9 @@ class MonitoringSourceMainData(BaseModel):
     reliability: Optional[float] = Field(
         default=None, description="Reliability score of the monitoring source, ranging from 0 to 100"
     )
+    last_reviewed: Optional[int] = Field(
+        default=None, description="The last time the source was reviewed, in epoch time"
+    )
     attributes: Optional[Dict[str, Any]] = Field(
         default=None,
         description="Platform-specific identifiers or handles required to monitor the source via API calls. Examples include a Twitter user id or a Telegram channel ID.",

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.base import ArangoOperator
@@ -14,6 +15,7 @@ class MonitoringSourceDataFactory(ArangoOperator):
 
     def create_monitoring_source(self, data: MonitoringSourceMainData, user_id: str) -> MonitoringSource:
         logger.debug(f"Creating monitoring source: {data.name} with user_id: {user_id}")
+        data.last_reviewed = int(datetime.now().timestamp())
         doc = self._create_in_arango(
             ArangoDBClient().get_collection(EntityNameConstant.MONITORING_SOURCE),
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
