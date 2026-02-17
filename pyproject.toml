@@ -52,4 +52,4 @@ where = ["src"]
 source = ["src/omni_python_library"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/omni_python_library --cov-report=xml"
+addopts = "--cov=src/omni_python_library --cov-branch --cov-report=xml"
