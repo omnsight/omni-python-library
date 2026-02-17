@@ -5,20 +5,12 @@ from arango import ArangoClient as PyArangoClient
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.models.osint import EventMainData, OrganizationMainData, PersonMainData
+from omni_python_library.models.osint import EventMainData
 from omni_python_library.utils.singleton import Singleton
 from omni_python_library.utils.user import UserRole
 
-# This test suite assumes a running ArangoDB and Redis instance (via docker-compose)
-# We skip these tests if the services aren't available to avoid failing CI without docker.
 
-
-def is_service_available():
-    # Simple check - in a real scenario we might try to connect
-    return True
-
-
-class TestCRUD(unittest.TestCase):
+class TestEventCRUD(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Configure clients to point to Docker services
@@ -53,93 +45,42 @@ class TestCRUD(unittest.TestCase):
         OpenAIClient().init()
         self.dal.init()
 
-    def test_person_crud(self):
+    def test_event_crud(self):
         # Create
-        person_data = PersonMainData(
-            name="John Doe",
-            role="Engineer",
-            nationality="US",
-            birth_date=100000,
-            updated_at=200000,
+        event_data = EventMainData(
+            title="Tech Meetup",
+            type="Meetup",
+            happened_at=1725148800,  # Sep 1, 2024
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
-
-        created = self.dal.create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
+        created = self.dal.create_event(event_data, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(created)
-        self.assertEqual(created.name, "John Doe")
+        self.assertEqual(created.title, "Tech Meetup")
 
         # Read
-        fetched = self.dal.get_person(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        fetched = self.dal.get_event(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(fetched)
-        self.assertEqual(fetched.name, "John Doe")
-        self.assertEqual(fetched.role, "Engineer")
+        self.assertEqual(fetched.title, "Tech Meetup")
+        self.assertEqual(fetched.type, "Meetup")
 
         # Update
-        updated = self.dal.update_person(
-            created.id, PersonMainData(role="Senior Engineer"), owner="test_user", roles=[UserRole.ADMIN]
+        updated = self.dal.update_event(
+            created.id, EventMainData(type="Community Meetup"), owner="test_user", roles=[UserRole.ADMIN]
         )
-        self.assertEqual(updated.role, "Senior Engineer")
+        self.assertEqual(updated.type, "Community Meetup")
 
-        # Read again (should hit cache or DB)
-        fetched_updated = self.dal.get_person(created.id, owner="test_user", roles=[UserRole.ADMIN])
-        self.assertEqual(fetched_updated.role, "Senior Engineer")
+        # Read again
+        fetched_updated = self.dal.get_event(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        self.assertEqual(fetched_updated.type, "Community Meetup")
 
         # Delete
         deleted = self.dal.delete_entity(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertTrue(deleted)
 
         # Verify Delete
-        fetched_deleted = self.dal.get_person(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        fetched_deleted = self.dal.get_event(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNone(fetched_deleted)
-
-    def test_organization_crud_with_pending(self):
-        # Create
-        org_data = OrganizationMainData(
-            name="CyberCorp",
-            type="Technology",
-            founded_at=1609459200,  # Jan 1, 2021
-            read=[UserRole.ADMIN],
-            write=[UserRole.ADMIN],
-        )
-        created = self.dal.create_organization(org_data, owner="test_user_pending", roles=[UserRole.ADMIN])
-        self.assertIsNotNone(created)
-        self.assertEqual(created.name, "CyberCorp")
-
-        # Update with in_pending=True
-        self.dal.update_organization(
-            created.id,
-            OrganizationMainData(type="Global Technology"),
-            owner="test_user_pending",
-            roles=[UserRole.ADMIN],
-            in_pending=True,
-        )
-
-        # Read with in_pending=False (default) - should get original data
-        fetched_not_pending = self.dal.get_organization(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
-        self.assertEqual(fetched_not_pending.type, "Technology")
-
-        # Read with in_pending=True - should get merged data
-        fetched_pending = self.dal.get_organization(
-            created.id, owner="test_user_pending", roles=[UserRole.ADMIN], in_pending=True
-        )
-        self.assertEqual(fetched_pending.type, "Global Technology")
-        self.assertEqual(fetched_pending.name, "CyberCorp")  # Ensure other fields are intact
-
-        # Perform a final update (in_pending=False)
-        final_update = self.dal.update_organization(
-            created.id, OrganizationMainData(founded_at=1609545600), owner="test_user_pending", roles=[UserRole.ADMIN]
-        )  # Jan 2, 2021
-        self.assertEqual(final_update.founded_at, 1609545600)
-        self.assertEqual(final_update.type, "Global Technology")  # Check that pending change was applied
-
-        # Read again, should be permanently updated
-        fetched_final = self.dal.get_organization(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
-        self.assertEqual(fetched_final.founded_at, 1609545600)
-        self.assertEqual(fetched_final.type, "Global Technology")
-
-        # Clean up
-        self.dal.delete_entity(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
 
     def test_event_crud_with_pending_creation(self):
         # Create with in_pending=True

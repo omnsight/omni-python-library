@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 class MonitoringSourceDataAccessLayer(
     MonitoringSourceDataFactory, MonitoringSourceDataMutator, MonitoringSourceDataDestroyer
 ):
-    def __init__(self):
-        super().__init__()
+    def init(self):
+        super().init()
         ArangoDBClient().init_collection(
             EntityNameConstant.MONITORING_SOURCE,
             indices=[],
