@@ -48,7 +48,7 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
     def query(
         self,
         query_str: str,
-        bind_vars: Optional[Dict[str, Any]] = None,
+        bind_vars: Dict[str, Any],
         in_pending: bool = False,
     ) -> List[Union[Relation, Event, Source, Person, Organization, Website]]:
         """
@@ -59,8 +59,10 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
         :return: A list of mapped objects.
         """
         logger.debug(f"Executing query: {query_str} with vars: {bind_vars}")
-        if bind_vars is None:
-            bind_vars = {}
+
+        if "owner" not in bind_vars or "roles" not in bind_vars:
+            raise InternalError("bind_vars must contain owner and roles")
+
         try:
             cursor = ArangoDBClient().db.aql.execute(query_str, bind_vars=bind_vars)
             results = []

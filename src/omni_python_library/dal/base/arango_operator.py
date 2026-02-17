@@ -16,7 +16,7 @@ class ArangoOperator(Cacher):
         super().init()
 
     def _get_from_arango(
-        self, id: str, owner: Optional[str] = None, roles: List[str] = [], in_pending: bool = False
+        self, id: str, owner: str, roles: List[str], in_pending: bool = False
     ) -> Optional[Dict[str, Any]]:
         doc = self._raw_fetch(id)
         if not doc:
@@ -40,9 +40,9 @@ class ArangoOperator(Cacher):
         self,
         collection: StandardCollection,
         data: Dict[str, Any],
+        owner: str,
+        roles: List[str],
         embedding_fields: List[str] = [],
-        owner: Optional[str] = None,
-        roles: List[str] = [],
         pending_data: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         if not self._check_auth(owner, roles, [UserRole.ADMIN, UserRole.PRO]):
@@ -70,9 +70,9 @@ class ArangoOperator(Cacher):
         self,
         id: str,
         data: Dict[str, Any],
+        owner: str,
+        roles: List[str],
         embedding_fields: List[str] = [],
-        owner: Optional[str] = None,
-        roles: List[str] = [],
         in_pending: bool = False,
     ) -> Dict[str, Any]:
         doc = self._raw_fetch(id)
@@ -125,7 +125,7 @@ class ArangoOperator(Cacher):
         except Exception as e:
             raise InternalError(f"Error updating document {id}") from e
 
-    def _delete_in_arango(self, id: str, owner: Optional[str] = None, roles: List[str] = []) -> bool:
+    def _delete_in_arango(self, id: str, owner: str, roles: List[str]) -> bool:
         doc = self._raw_fetch(id)
         if not doc:
             raise NotFoundError(f"Document {id} not found")

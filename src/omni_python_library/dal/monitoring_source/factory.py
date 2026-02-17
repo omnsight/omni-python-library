@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import List
 
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.base import ArangoOperator
@@ -13,13 +14,16 @@ class MonitoringSourceDataFactory(ArangoOperator):
     def init(self):
         super().init()
 
-    def create_monitoring_source(self, data: MonitoringSourceMainData, user_id: str) -> MonitoringSource:
-        logger.debug(f"Creating monitoring source: {data.name} with user_id: {user_id}")
+    def create_monitoring_source(
+        self, data: MonitoringSourceMainData, owner: str, roles: List[str]
+    ) -> MonitoringSource:
+        logger.debug(f"Creating monitoring source: {data.name} with owner: {owner}")
         data.last_reviewed = int(datetime.now().timestamp())
         doc = self._create_in_arango(
             ArangoDBClient().get_collection(EntityNameConstant.MONITORING_SOURCE),
             data.model_dump(mode="json", by_alias=True, exclude_unset=True),
-            owner=user_id,
+            owner=owner,
+            roles=roles,
         )
         return MonitoringSource(
             id=doc["_id"],

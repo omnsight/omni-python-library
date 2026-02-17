@@ -6,6 +6,7 @@ from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import OrganizationMainData
+from omni_python_library.utils import PermissionDeniedError
 from omni_python_library.utils.singleton import Singleton
 from omni_python_library.utils.user import UserRole
 
@@ -129,6 +130,38 @@ class TestOrganizationCRUD(unittest.TestCase):
 
         # Clean up
         self.dal.delete_entity(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
+
+    def test_organization_crud_permission_denied(self):
+        # Create an organization with a specific owner and roles
+        org_data = OrganizationMainData(
+            name="Protected Corp",
+            type="Security",
+            read=[UserRole.ADMIN],
+            write=[UserRole.ADMIN],
+        )
+        created = self.dal.create_organization(org_data, owner="owner_user", roles=[UserRole.ADMIN])
+        self.assertIsNotNone(created)
+
+        # Test creating with insufficient permissions
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.create_organization(org_data, owner="non_admin_user", roles=[UserRole.USER])
+
+        # Test reading with wrong owner and no matching roles
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.get_organization(created.id, owner="another_user", roles=[UserRole.USER])
+
+        # Test updating with wrong owner and no matching roles
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.update_organization(
+                created.id, OrganizationMainData(type="Global Security"), owner="another_user", roles=[UserRole.USER]
+            )
+
+        # Test deleting with wrong owner
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.delete_entity(created.id, owner="another_user", roles=[UserRole.ADMIN])
+
+        # Clean up
+        self.dal.delete_entity(created.id, owner="owner_user", roles=[UserRole.ADMIN])
 
 
 if __name__ == "__main__":

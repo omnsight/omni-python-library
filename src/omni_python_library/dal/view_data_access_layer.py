@@ -35,7 +35,7 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
             lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None,
         )
 
-    def query_views(self, text: str, owner: str, lang: str = "en", limit: int = 100) -> List[OsintView]:
+    def query_views(self, text: str, owner: str, limit: int = 100) -> List[OsintView]:
         logger.debug(f"Querying views by text: {text} and owner: {owner}")
 
         # Use FILTER instead of SEARCH to avoid "collection or view not found" error with inverted index
