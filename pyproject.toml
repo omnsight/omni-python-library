@@ -7,7 +7,7 @@ name = "omni-python-library"
 version = "0.1.0"
 description = "Omni Python Library"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.0.0",
     "python-arango>=7.5.0",
@@ -25,7 +25,8 @@ dev = [
     "mypy>=1.0.0",
     "types-redis",
     "types-cachetools",
-    "pytest>=7.0.0",
+    "pytest>=9.0.2",
+    "pytest-cov>=5.0.0",
 ]
 
 [tool.black]
@@ -46,3 +47,9 @@ check_untyped_defs = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.coverage.run]
+source = ["src/omni_python_library"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=src/omni_python_library --cov-branch --cov-report=xml"

@@ -8,6 +8,7 @@ from omni_python_library.models.common import ArangoData, LocationData, Permissi
 # Relation
 class RelationMainData(BaseModel):
     name: Optional[str] = Field(default=None, description="Name of the relation used in database key (must be ascii letters)")
+    type: Optional[str] = Field(default=None, description="Type of the relation")
     confidence: Optional[int] = Field(default=None, description="Confidence score")
     label: Optional[str] = Field(default=None, description="Label name of the relation (can be any language) to display")
     created_at: Optional[int] = Field(default=None, description="Creation timestamp")

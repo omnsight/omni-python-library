@@ -2,20 +2,13 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-# Pre-mock to avoid side effects during import if any
-sys.modules["openai"] = MagicMock()
-
-# We can let redis and arango be real or mocked.
-# Since we want to test "class init (that code does not error out after invoking init)",
-# we should ideally test the real classes if possible, OR test that they invoke the right things.
-# Given the user wants to test "against class init", let's use mocks for the underlying drivers
-# to avoid needing a running DB for *initialization* tests (fast feedback),
-# while the CRUD tests will use the docker container.
-
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.utils.singleton import Singleton
+
+
+sys.modules["openai"] = MagicMock()
 
 
 class TestInitialization(unittest.TestCase):
@@ -23,7 +16,7 @@ class TestInitialization(unittest.TestCase):
         # Reset Singletons
         Singleton._instances = {}
 
-    @patch("omni_python_library.clients.redis.redis.Redis")
+    @patch("omni_python_library.clients.redis.Redis")
     def test_redis_client_init(self, mock_redis):
         """Test RedisClient initialization."""
         client = RedisClient()

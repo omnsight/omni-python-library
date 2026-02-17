@@ -2,6 +2,7 @@ from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.openai import OpenAIClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.monitoring_source_data_access_layer import MonitoringSourceDataAccessLayer
+from omni_python_library.dal.monitor_trigger_data_access_layer import MonitorTriggerDataAccessLayer
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.utils.config_registry import ConfigRegistry, LLMConstant
@@ -69,3 +70,4 @@ def init_omni_library() -> None:
     OsintDataAccessLayer().init()
     ViewDataAccessLayer().init()
     MonitoringSourceDataAccessLayer().init()
+    MonitorTriggerDataAccessLayer()

@@ -83,7 +83,6 @@ class ViewDataMutator(ViewDataFetcher):
         self._verify_entities_exist([entity_id])
 
         # Fetch view to get owner
-        # We should use _get_from_arango to check read permissions for the caller
         doc = self._get_from_arango(view_id, owner=owner, roles=roles)
         if not doc:
             raise NotFoundError(f"View {view_id} not found")
@@ -98,21 +97,6 @@ class ViewDataMutator(ViewDataFetcher):
             updated_at=int(time.time()),
         )
 
-        # Create relation using caller's auth context?
-        # Or view owner's context?
-        # The original code used `owner=view.owner`.
-        # If we want to allow ADMIN to do this, we should pass `roles`.
-        # If we use `owner=view.owner`, then we are impersonating the view owner?
-        # But `_check_auth` checks if `owner` matches `view.owner`.
-        # If we pass `owner=owner` (the caller), then it checks if caller is ADMIN/PRO.
-        # Since creating relation requires ADMIN/PRO, passing the caller `owner` and `roles` is better if the caller is ADMIN.
-        # But if the caller is just the owner of the view (and not ADMIN/PRO), they should be able to add entities to their view?
-        # create_relation requires ADMIN/PRO.
-        # So a normal user CANNOT create relations?
-        # If so, normal users cannot add entities to views?
-        # That seems like a design limitation or intended RBAC.
-        # Assuming intended: we pass caller's owner and roles.
-
         OsintDataAccessLayer().create_relation(relation_data, owner=owner, roles=roles)
 
         return view
@@ -122,8 +106,6 @@ class ViewDataMutator(ViewDataFetcher):
             return
 
         for eid in entity_ids:
-            # Using DOCUMENT function to check existence.
-            # It returns the document or null if not found.
             query = "RETURN DOCUMENT(@id)"
             try:
                 cursor = ArangoDBClient().db.aql.execute(query, bind_vars={"id": eid})
