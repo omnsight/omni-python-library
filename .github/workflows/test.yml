@@ -11,21 +11,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-      arangodb:
-        image: arangodb
-        ports:
-          - 8529:8529
-        env:
-          ARANGO_ROOT_PASSWORD: password
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up --build -d
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,6 +30,10 @@ jobs:
 
       - name: Run tests and generate coverage report
         run: uv run pytest
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

@@ -9,18 +9,18 @@ description = "Omni Python Library"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "uvicorn>=0.22.0",
     "pydantic>=2.0.0",
+    "fastapi>=0.100.0",
     "python-arango>=7.5.0",
     "redis>=4.5.0",
     "cachetools>=5.3.0",
     "openai>=1.0.0",
-    "fastapi>=0.100.0",
-    "uvicorn>=0.20.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "black>=23.0.0",
+    "black>=25.11.0",
     "isort>=5.0.0",
     "mypy>=1.0.0",
     "types-redis",
