@@ -32,19 +32,17 @@ class MonitorTriggerDataAccessLayer:
 
         with RedisClient().monitoring_client.pipeline() as pipe:
             for user_id in user_ids:
-                pipe.hgetall(self._get_trigger_key(user_id.decode("utf-8")))
+                pipe.hgetall(self._get_trigger_key(user_id))
             results = pipe.execute()
 
         triggers = []
         for data in results:
             if data:
-                decoded_data = {k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()}
-                triggers.append(MonitorTrigger(**decoded_data))
+                triggers.append(MonitorTrigger(**data))
         return triggers
 
     def get_monitor_trigger(self, user_id: str) -> Optional[MonitorTrigger]:
         data = RedisClient().monitoring_client.hgetall(self._get_trigger_key(user_id))
         if not data:
             return None
-        decoded_data = {k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()}
-        return MonitorTrigger(**decoded_data)
+        return MonitorTrigger(**data)

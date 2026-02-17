@@ -54,17 +54,18 @@ def init_omni_library() -> None:
     RedisClient().init(
         host=ConfigRegistry().get("REDIS_HOST"),
         port=int(ConfigRegistry().get("REDIS_PORT")),
-        db=int(ConfigRegistry().get("REDIS_DB")),
         password=ConfigRegistry().get("REDIS_PASSWORD"),
     )
 
     # Initialize OpenAI Client Wrapper
     OpenAIClient().init()
-    OpenAIClient().add_client(
-        model_use=LLMConstant.EMBEDDING,
-        api_key=ConfigRegistry().get("EMBEDDING_AI_API_KEY"),
-        model=ConfigRegistry().get("EMBEDDING_MODEL"),
-    )
+    if ConfigRegistry().get("EMBEDDING_AI_API_KEY"):
+        OpenAIClient().add_client(
+            model_use=LLMConstant.EMBEDDING,
+            api_key=ConfigRegistry().get("EMBEDDING_AI_API_KEY"),
+            base_url=ConfigRegistry().get("EMBEDDING_AI_API_BASE_URL"),
+            model=ConfigRegistry().get("EMBEDDING_MODEL"),
+        )
 
     # Initialize DAL
     OsintDataAccessLayer().init()

@@ -22,6 +22,12 @@ class ArangoDBClient(Singleton):
         self._embedding_dimension = int(embedding_dimension)
 
         self._client = ArangoClient(hosts=self._host)
+
+        # Connect to "_system" database to create the target database if it doesn't exist.
+        sys_db = self._client.db("_system", username=self._username, password=self._password)
+        if not sys_db.has_database(self._db_name):
+            sys_db.create_database(self._db_name)
+
         self._db = self._client.db(
             self._db_name,
             username=self._username,

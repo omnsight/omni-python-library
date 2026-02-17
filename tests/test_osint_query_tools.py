@@ -1,59 +1,24 @@
-import time
 import unittest
 
-from arango import ArangoClient as PyArangoClient
-
+from omni_python_library import init_omni_library
 from omni_python_library.clients.arangodb import ArangoDBClient
-from omni_python_library.clients.openai import OpenAIClient
-from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.query_tools.entity_neighborhood import search_entity_neighborhood
 from omni_python_library.dal.query_tools.event_search import search_events
 from omni_python_library.models.osint import EventMainData, LocationData, PersonMainData, RelationMainData
 from omni_python_library.utils import InternalError
-from omni_python_library.utils.singleton import Singleton
 from omni_python_library.utils.user import UserRole
 
 
 class TestQueryTools(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        Singleton._instances = {}
-
-        # Initialize OpenAIClient to avoid attribute errors
-        OpenAIClient().init()
-
-        RedisClient().init(host="localhost", port=6379)
-        # Clear Redis
-        RedisClient().client.flushdb()
-
-        # Create DB if not exists using direct client to avoid initializing collections in _system
-        sys_client = PyArangoClient(hosts="http://localhost:8529")
-        sys_db = sys_client.db("_system", username="root", password="password")
-
-        # Drop existing DB to ensure clean state
-        if sys_db.has_database("test_osint_db"):
-            sys_db.delete_database("test_osint_db")
-
-        sys_db.create_database("test_osint_db")
-
-        # Now initialize the application client
-        ArangoDBClient().init(
-            host="http://localhost:8529", username="root", password="password", db_name="test_osint_db"
-        )
+        init_omni_library()
 
     def setUp(self):
-        self.dal = OsintDataAccessLayer()
-        # Initialize DAL (creates collections and graphs)
-        self.dal.init()
-
-        # Clear collections (if needed, or relying on unique DB per run)
-        # Since we use a fresh DB in setUpClass, we might just need to ensure cleanliness if we reuse it.
-        # But for now, let's assume it's clean enough or we clean up after.
-        # Actually, let's just truncate collections to be safe between tests.
-        client = ArangoDBClient()
-        for col_name in client._collections:
-            client._collections[col_name].truncate()
+        # Clear DB collections before each test
+        for col_name in ArangoDBClient()._collections:
+            ArangoDBClient()._collections[col_name].truncate()
 
     def test_search_events(self):
         # Create Events
@@ -81,32 +46,32 @@ class TestQueryTools(unittest.TestCase):
         )
 
         e1_data = EventMainData(title="Event 1", description="First event", happened_at=1000, location=loc_us)
-        e1 = self.dal.create_event(e1_data, owner="test", roles=[UserRole.ADMIN])
+        e1 = OsintDataAccessLayer().create_event(e1_data, owner="test", roles=[UserRole.ADMIN])
 
         e2_data = EventMainData(title="Event 2", description="Second event", happened_at=2000, location=loc_us)
-        e2 = self.dal.create_event(e2_data, owner="test", roles=[UserRole.ADMIN])
+        e2 = OsintDataAccessLayer().create_event(e2_data, owner="test", roles=[UserRole.ADMIN])
 
         e3_data = EventMainData(
             title="Event 3", description="Third event (unrelated)", happened_at=3000, location=loc_uk
         )
-        e3 = self.dal.create_event(e3_data, owner="test", roles=[UserRole.ADMIN])
+        e3 = OsintDataAccessLayer().create_event(e3_data, owner="test", roles=[UserRole.ADMIN])
 
         e4_data = EventMainData(
             title="Event 4", description="Fourth event (other owner)", happened_at=4000, location=loc_us
         )
-        e4 = self.dal.create_event(e4_data, owner="other", roles=[UserRole.ADMIN])
+        e4 = OsintDataAccessLayer().create_event(e4_data, owner="other", roles=[UserRole.ADMIN])
 
         e5_data = EventMainData(
             title="Event 5", description="Fifth event (role access)", happened_at=5000, location=loc_us
         )
-        e5 = self.dal.create_event(e5_data, owner="other", roles=[UserRole.ADMIN])
-        e5_doc = self.dal.get_event(e5.id, owner="other", roles=[UserRole.ADMIN])
+        e5 = OsintDataAccessLayer().create_event(e5_data, owner="other", roles=[UserRole.ADMIN])
+        e5_doc = OsintDataAccessLayer().get_event(e5.id, owner="other", roles=[UserRole.ADMIN])
         e5_doc.read = [UserRole.ADMIN]
-        self.dal.update_event(id=e5.id, data=e5_doc, owner="other", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().update_event(id=e5.id, data=e5_doc, owner="other", roles=[UserRole.ADMIN])
 
         # Create Relation between E1 and E2
         rel_data = RelationMainData(name="link", from_id=e1.id, to_id=e2.id, label="related_to")
-        self.dal.create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
 
         # Search events (filter by country US to get E1 and E2)
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US")
@@ -127,30 +92,30 @@ class TestQueryTools(unittest.TestCase):
     def test_search_entity_neighborhood(self):
         # Create Person
         p_data = PersonMainData(name="Alice", role="Analyst")
-        p = self.dal.create_person(p_data, owner="test", roles=[UserRole.ADMIN])
+        p = OsintDataAccessLayer().create_person(p_data, owner="test", roles=[UserRole.ADMIN])
 
         p2_data = PersonMainData(name="Bob", role="Manager")
-        p2 = self.dal.create_person(p2_data, owner="other", roles=[UserRole.ADMIN])
+        p2 = OsintDataAccessLayer().create_person(p2_data, owner="other", roles=[UserRole.ADMIN])
 
         p3_data = PersonMainData(name="Charlie", role="Director")
-        p3 = self.dal.create_person(p3_data, owner="other", roles=[UserRole.ADMIN])
-        p3_doc = self.dal.get_person(p3.id, owner="other", roles=[UserRole.ADMIN])
+        p3 = OsintDataAccessLayer().create_person(p3_data, owner="other", roles=[UserRole.ADMIN])
+        p3_doc = OsintDataAccessLayer().get_person(p3.id, owner="other", roles=[UserRole.ADMIN])
         p3_doc.read = [UserRole.ADMIN]
-        self.dal.update_person(id=p3.id, data=p3_doc, owner="other", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().update_person(id=p3.id, data=p3_doc, owner="other", roles=[UserRole.ADMIN])
 
         # Create Event
         e_data = EventMainData(title="Incident A", happened_at=5000)
-        e = self.dal.create_event(e_data, owner="test", roles=[UserRole.ADMIN])
+        e = OsintDataAccessLayer().create_event(e_data, owner="test", roles=[UserRole.ADMIN])
 
         # Create Relation Person -> Event
         rel_data = RelationMainData(name="participant", from_id=e.id, to_id=p.id, label="involved_in")
-        self.dal.create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
 
         rel2_data = RelationMainData(name="participant", from_id=e.id, to_id=p2.id, label="involved_in")
-        self.dal.create_relation(rel2_data, owner="test", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().create_relation(rel2_data, owner="test", roles=[UserRole.ADMIN])
 
         rel3_data = RelationMainData(name="participant", from_id=e.id, to_id=p3.id, label="involved_in")
-        self.dal.create_relation(rel3_data, owner="test", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().create_relation(rel3_data, owner="test", roles=[UserRole.ADMIN])
 
         # Search neighborhood of Event
         results = search_entity_neighborhood(e.id, owner="test", roles=[UserRole.ADMIN])
@@ -162,7 +127,7 @@ class TestQueryTools(unittest.TestCase):
 
     def test_search_entity_neighborhood_missing_bind_vars(self):
         with self.assertRaises(InternalError):
-            self.dal.query("FOR doc IN event RETURN doc", bind_vars={})
+            OsintDataAccessLayer().query("FOR doc IN event RETURN doc", bind_vars={})
 
 
 if __name__ == "__main__":
