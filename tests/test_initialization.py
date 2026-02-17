@@ -2,9 +2,11 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
+from omni_python_library import init_omni_library
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
+from omni_python_library.utils.config_registry import LLMConstant
 from omni_python_library.utils.singleton import Singleton
 
 sys.modules["openai"] = MagicMock()
@@ -66,6 +68,92 @@ class TestInitialization(unittest.TestCase):
 
         dal = OsintDataAccessLayer()
         dal.init()
+
+    @patch("omni_python_library.MonitorTriggerDataAccessLayer")
+    @patch("omni_python_library.MonitoringSourceDataAccessLayer")
+    @patch("omni_python_library.ViewDataAccessLayer")
+    @patch("omni_python_library.OsintDataAccessLayer")
+    @patch("omni_python_library.OpenAIClient")
+    @patch("omni_python_library.RedisClient")
+    @patch("omni_python_library.ArangoDBClient")
+    @patch("omni_python_library.ConfigRegistry")
+    def test_init_omni_library(
+        self,
+        mock_config_registry,
+        mock_arango_client,
+        mock_redis_client,
+        mock_openai_client,
+        mock_osint_dal,
+        mock_view_dal,
+        mock_monitoring_source_dal,
+        mock_monitor_trigger_dal,
+    ):
+        """Test the main library initialization function."""
+        # Setup mock for ConfigRegistry
+        mock_config_instance = MagicMock()
+        mock_config_registry.return_value = mock_config_instance
+        config_values = {
+            "ARANGODB_HOST": "arango_host",
+            "ARANGODB_USERNAME": "arango_user",
+            "ARANGODB_PASSWORD": "arango_pass",
+            "ARANGODB_DB_NAME": "arango_db",
+            "ARANGODB_EMBEDDING_DIMENSION": "1536",
+            "REDIS_HOST": "redis_host",
+            "REDIS_PORT": "6379",
+            "REDIS_DB": "0",
+            "REDIS_PASSWORD": "redis_pass",
+            "EMBEDDING_AI_API_KEY": "openai_key",
+            "EMBEDDING_MODEL": "openai_model",
+        }
+        mock_config_instance.get.side_effect = lambda key: config_values[key]
+
+        # Setup mocks for clients
+        mock_arango_instance = MagicMock()
+        mock_arango_client.return_value = mock_arango_instance
+
+        mock_redis_instance = MagicMock()
+        mock_redis_client.return_value = mock_redis_instance
+
+        mock_openai_instance = MagicMock()
+        mock_openai_client.return_value = mock_openai_instance
+
+        # Setup mocks for DALs
+        mock_osint_instance = MagicMock()
+        mock_osint_dal.return_value = mock_osint_instance
+
+        mock_view_instance = MagicMock()
+        mock_view_dal.return_value = mock_view_instance
+
+        mock_monitoring_source_instance = MagicMock()
+        mock_monitoring_source_dal.return_value = mock_monitoring_source_instance
+
+        # Call the function
+        init_omni_library()
+
+        # Assertions
+        mock_arango_instance.init.assert_called_once_with(
+            host="arango_host",
+            username="arango_user",
+            password="arango_pass",
+            db_name="arango_db",
+            embedding_dimension=1536,
+        )
+        mock_redis_instance.init.assert_called_once_with(
+            host="redis_host",
+            port=6379,
+            db=0,
+            password="redis_pass",
+        )
+        mock_openai_instance.init.assert_called_once()
+        mock_openai_instance.add_client.assert_called_once_with(
+            model_use=LLMConstant.EMBEDDING,
+            api_key="openai_key",
+            model="openai_model",
+        )
+        mock_osint_instance.init.assert_called_once()
+        mock_view_instance.init.assert_called_once()
+        mock_monitoring_source_instance.init.assert_called_once()
+        mock_monitor_trigger_dal.assert_called_once()
 
 
 if __name__ == "__main__":
