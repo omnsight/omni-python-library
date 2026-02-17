@@ -29,8 +29,8 @@ class OsintDataMutator(OsintDataFetcher):
         self,
         id: str,
         data: Union[RelationMainData, Permissive],
-        owner: str = None,
-        roles: List[str] = [],
+        owner: str,
+        roles: List[str],
         in_pending: bool = False,
     ) -> Relation:
         logger.debug(f"Updating relation {id} with data {data}")
@@ -47,8 +47,8 @@ class OsintDataMutator(OsintDataFetcher):
         self,
         id: str,
         data: Union[EventMainData, Permissive],
-        owner: str = None,
-        roles: List[str] = [],
+        owner: str,
+        roles: List[str],
         in_pending: bool = False,
     ) -> Event:
         logger.debug(f"Updating event {id} with data {data}")
@@ -66,8 +66,8 @@ class OsintDataMutator(OsintDataFetcher):
         self,
         id: str,
         data: Union[SourceMainData, Permissive],
-        owner: str = None,
-        roles: List[str] = [],
+        owner: str,
+        roles: List[str],
         in_pending: bool = False,
     ) -> Source:
         logger.debug(f"Updating source {id} with data {data}")
@@ -85,8 +85,8 @@ class OsintDataMutator(OsintDataFetcher):
         self,
         id: str,
         data: Union[PersonMainData, Permissive],
-        owner: str = None,
-        roles: List[str] = [],
+        owner: str,
+        roles: List[str],
         in_pending: bool = False,
     ) -> Person:
         logger.debug(f"Updating person {id} with data {data}")
@@ -104,8 +104,8 @@ class OsintDataMutator(OsintDataFetcher):
         self,
         id: str,
         data: Union[OrganizationMainData, Permissive],
-        owner: str = None,
-        roles: List[str] = [],
+        owner: str,
+        roles: List[str],
         in_pending: bool = False,
     ) -> Organization:
         logger.debug(f"Updating organization {id} with data {data}")
@@ -123,8 +123,8 @@ class OsintDataMutator(OsintDataFetcher):
         self,
         id: str,
         data: Union[WebsiteMainData, Permissive],
-        owner: str = None,
-        roles: List[str] = [],
+        owner: str,
+        roles: List[str],
         in_pending: bool = False,
     ) -> Website:
         logger.debug(f"Updating website {id} with data {data}")

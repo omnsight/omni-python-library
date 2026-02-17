@@ -13,7 +13,7 @@ class ViewDataFactory(ArangoOperator):
     def init(self):
         super().init()
 
-    def create_view(self, data: OsintViewMainData, owner: str, roles: List[str] = []) -> OsintView:
+    def create_view(self, data: OsintViewMainData, owner: str, roles: List[str]) -> OsintView:
         logger.debug(f"Creating view: {data.name} with owner: {owner}")
         doc = self._create_in_arango(
             ArangoDBClient().get_collection(EntityNameConstant.VIEW),

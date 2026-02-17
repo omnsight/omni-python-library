@@ -16,7 +16,7 @@ class ViewDataMutator(ViewDataFetcher):
         super().init()
 
     def update_view(
-        self, id: str, data: Union[OsintViewMainData, Permissive], owner: str = None, roles: List[str] = []
+        self, id: str, data: Union[OsintViewMainData, Permissive], owner: str, roles: List[str]
     ) -> OsintView:
         logger.debug(f"Updating view {id} with data {data}")
         if isinstance(data, OsintViewMainData) and data.configs:
@@ -76,9 +76,7 @@ class ViewDataMutator(ViewDataFetcher):
 
         return OsintView(**new_doc)
 
-    def connect_entity_to_view(
-        self, view_id: str, entity_id: str, owner: str = None, roles: List[str] = []
-    ) -> OsintView:
+    def connect_entity_to_view(self, view_id: str, entity_id: str, owner: str, roles: List[str]) -> OsintView:
         logger.debug(f"Connecting entity {entity_id} to view {view_id}")
         self._verify_entities_exist([entity_id])
 

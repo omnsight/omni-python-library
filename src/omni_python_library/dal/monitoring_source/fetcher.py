@@ -13,23 +13,23 @@ class MonitoringSourceFetcher(ArangoOperator):
     def init(self):
         super().init()
 
-    def get_monitoring_source(self, id: str) -> Optional[MonitoringSource]:
+    def get_monitoring_source(self, id: str, owner: str) -> Optional[MonitoringSource]:
         logger.debug(f"Getting monitoring source {id}")
-        doc = self._get_from_arango(id)
+        doc = self._get_from_arango(id, owner=owner, roles=[])
         if doc:
             return MonitoringSource(**doc)
         return None
 
-    def get_monitoring_sources_by_user(self, user_id: str, limit: int = 100) -> List[MonitoringSource]:
-        logger.debug(f"Getting monitoring sources for user: {user_id}")
+    def get_monitoring_sources_by_user(self, owner: str, limit: int = 100) -> List[MonitoringSource]:
+        logger.debug(f"Getting monitoring sources for user: {owner}")
         query = f"""
             FOR doc IN {EntityNameConstant.MONITORING_SOURCE}
-                FILTER doc.owner == @user_id
+                FILTER doc.owner == @owner
                 SORT doc.last_reviewed DESC
                 LIMIT @limit
                 RETURN doc
         """
-        bind_vars = {"user_id": user_id, "limit": limit}
+        bind_vars = {"owner": owner, "limit": limit}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []
@@ -40,15 +40,16 @@ class MonitoringSourceFetcher(ArangoOperator):
         except Exception as e:
             raise InternalError("Error getting monitoring sources by user") from e
 
-    def get_views(self, monitoring_source_id: str) -> List[OsintView]:
+    def get_views(self, monitoring_source_id: str, owner: str) -> List[OsintView]:
         logger.debug(f"Querying views connected to monitoring source: {monitoring_source_id}")
 
         query = f"""
             FOR v, e IN 1..1 INBOUND @monitoring_source_id
+                FILTER v.owner == @owner
                 GRAPH '{ArangoDBConstant.VIEW_GRAPH}'
                 RETURN v
         """
-        bind_vars = {"monitoring_source_id": monitoring_source_id}
+        bind_vars = {"owner": owner, "monitoring_source_id": monitoring_source_id}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []

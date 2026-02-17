@@ -27,7 +27,7 @@ class OsintDataFactory(ArangoOperator):
         super().init()
 
     def create_relation(
-        self, data: RelationMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+        self, data: RelationMainData, owner: str, roles: List[str], in_pending: bool = False
     ) -> Relation:
         logger.debug(f"Creating relation: {data} with owner: {owner}")
         src_col_name, _ = ArangoDBClient().parse_id(data.from_id)
@@ -63,7 +63,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_event(self, data: EventMainData, owner: str, roles: List[str] = [], in_pending: bool = False) -> Event:
+    def create_event(self, data: EventMainData, owner: str, roles: List[str], in_pending: bool = False) -> Event:
         logger.debug(f"Creating event: {data} with owner: {owner}")
         if in_pending:
             doc = self._create_in_arango(
@@ -88,9 +88,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_source(
-        self, data: SourceMainData, owner: str, roles: List[str] = [], in_pending: bool = False
-    ) -> Source:
+    def create_source(self, data: SourceMainData, owner: str, roles: List[str], in_pending: bool = False) -> Source:
         logger.debug(f"Creating source: {data} with owner: {owner}")
         if in_pending:
             doc = self._create_in_arango(
@@ -115,9 +113,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_person(
-        self, data: PersonMainData, owner: str, roles: List[str] = [], in_pending: bool = False
-    ) -> Person:
+    def create_person(self, data: PersonMainData, owner: str, roles: List[str], in_pending: bool = False) -> Person:
         logger.debug(f"Creating person: {data} with owner: {owner}")
         if in_pending:
             doc = self._create_in_arango(
@@ -143,7 +139,7 @@ class OsintDataFactory(ArangoOperator):
         )
 
     def create_organization(
-        self, data: OrganizationMainData, owner: str, roles: List[str] = [], in_pending: bool = False
+        self, data: OrganizationMainData, owner: str, roles: List[str], in_pending: bool = False
     ) -> Organization:
         logger.debug(f"Creating organization: {data} with owner: {owner}")
         if in_pending:
@@ -170,9 +166,7 @@ class OsintDataFactory(ArangoOperator):
             **doc,
         )
 
-    def create_website(
-        self, data: WebsiteMainData, owner: str, roles: List[str] = [], in_pending: bool = False
-    ) -> Website:
+    def create_website(self, data: WebsiteMainData, owner: str, roles: List[str], in_pending: bool = False) -> Website:
         logger.debug(f"Creating website: {data} with owner: {owner}")
         if in_pending:
             doc = self._create_in_arango(

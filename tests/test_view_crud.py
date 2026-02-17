@@ -9,7 +9,7 @@ from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models.osint import PersonMainData
 from omni_python_library.models.view import OsintViewMainData, ViewConfig, ViewMode, ViewUI
-from omni_python_library.utils import NotFoundError
+from omni_python_library.utils import NotFoundError, PermissionDeniedError
 from omni_python_library.utils.singleton import Singleton
 from omni_python_library.utils.user import UserRole
 
@@ -88,7 +88,7 @@ class TestViewCRUD(unittest.TestCase):
 
         # Connect Entity to View (to the second config, index 1)
         self.dal.connect_entity_to_view(view.id, person.id, owner="test_user", roles=[UserRole.ADMIN])
-        entities = self.dal.get_entities(view.id)
+        entities = self.dal.get_entities(view.id, owner="test_user", roles=[UserRole.ADMIN])
         assert any(entity.id == person.id for entity in entities)
 
         # Query by Text
@@ -117,6 +117,41 @@ class TestViewCRUD(unittest.TestCase):
             self.dal.connect_entity_to_view(
                 view.id, "person/non_existent_123", owner="test_user", roles=[UserRole.ADMIN]
             )
+
+    def test_view_crud_permission_denied(self):
+        # Create a view with a specific owner and roles
+        view_data = OsintViewMainData(
+            name="Protected View",
+            description="A view with restricted access",
+            read=[UserRole.ADMIN],
+            write=[UserRole.ADMIN],
+        )
+        created = self.dal.create_view(view_data, owner="owner_user", roles=[UserRole.ADMIN])
+        self.assertIsNotNone(created)
+
+        # Test creating with insufficient permissions
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.create_view(view_data, owner="non_admin_user", roles=[UserRole.USER])
+
+        # Test reading with wrong owner and no matching roles
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.get_view(created.id, owner="another_user", roles=[UserRole.USER])
+
+        # Test updating with wrong owner and no matching roles
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.update_view(
+                created.id,
+                OsintViewMainData(description="Updated by wrong user"),
+                owner="another_user",
+                roles=[UserRole.USER],
+            )
+
+        # Test deleting with wrong owner
+        with self.assertRaises(PermissionDeniedError):
+            self.dal.delete_view(created.id, owner="another_user", roles=[UserRole.ADMIN])
+
+        # Clean up
+        self.dal.delete_view(created.id, owner="owner_user", roles=[UserRole.ADMIN])
 
 
 if __name__ == "__main__":

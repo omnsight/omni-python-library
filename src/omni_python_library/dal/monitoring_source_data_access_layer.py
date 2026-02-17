@@ -35,8 +35,8 @@ class MonitoringSourceDataAccessLayer(
             },
         )
 
-    def query_monitoring_sources(self, text: str, user_id: str, limit: int = 100) -> List[MonitoringSource]:
-        logger.debug(f"Querying monitoring sources by text: {text} and user_id: {user_id}")
+    def query_monitoring_sources(self, text: str, owner: str, limit: int = 100) -> List[MonitoringSource]:
+        logger.debug(f"Querying monitoring sources by text: {text} and owner: {owner}")
 
         query = f"""
             LET terms = TOKENS(@text, "text_en")
@@ -49,12 +49,12 @@ class MonitoringSourceDataAccessLayer(
                     ),
                     "text_en"
                 )
-                FILTER doc.owner == @user_id
+                FILTER doc.owner == @owner
                 LIMIT @limit
                 RETURN doc
         """
 
-        bind_vars = {"text": text, "user_id": user_id, "limit": limit}
+        bind_vars = {"text": text, "owner": owner, "limit": limit}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []

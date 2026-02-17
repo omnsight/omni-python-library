@@ -6,6 +6,8 @@ from omni_python_library.utils import ArangoDBConstant
 
 
 def search_events(
+    owner: str,
+    roles: List[str],
     text: Optional[str] = None,
     date_range: Optional[Tuple[Optional[int], Optional[int]]] = None,
     country_code: Optional[str] = None,
@@ -19,10 +21,12 @@ def search_events(
     :param date_range: Tuple of (start_timestamp, end_timestamp).
     :param country_code: ISO country code to filter by.
     :param limit: Maximum number of events to return.
+    :param owner: The owner of the documents to filter by.
+    :param roles: The roles to filter by.
     :return: A list of Event and Relation objects.
     """
-    bind_vars = {"limit": limit}
-    filters = []
+    bind_vars = {"limit": limit, "owner": owner, "roles": roles}
+    filters = ["FILTER (doc.owner == @owner OR LENGTH(INTERSECTION(doc.read, @roles)) > 0)"]
 
     if country_code:
         filters.append("FILTER doc.location.country_code == @country_code")
@@ -45,7 +49,7 @@ def search_events(
         """
         bind_vars["vector"] = OsintDataAccessLayer().generate_embedding(text)
 
-    filter_str = "\n".join(filters) if filters else ""
+    filter_str = "\n".join(filters)
 
     query = f"""
     LET events = (
