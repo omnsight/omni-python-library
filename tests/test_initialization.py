@@ -48,7 +48,9 @@ class TestInitialization(unittest.TestCase):
         self.assertEqual(client._db_name, "test_db")
 
         mock_arango_client_cls.assert_called_once_with(hosts="http://localhost:8529")
-        mock_client_instance.db.assert_called_once_with("test_db", username="root", password="pw")
+        self.assertEqual(mock_client_instance.db.call_count, 2)
+        mock_client_instance.db.assert_any_call("_system", username="root", password="pw")
+        mock_client_instance.db.assert_called_with("test_db", username="root", password="pw")
 
     @patch("omni_python_library.dal.base.cacher.RedisClient")
     @patch("omni_python_library.dal.osint_data_access_layer.ArangoDBClient")
