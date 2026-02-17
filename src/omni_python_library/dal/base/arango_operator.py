@@ -122,6 +122,8 @@ class ArangoOperator(Cacher):
             doc["_rev"] = meta["_rev"]
             self.set(id, doc)
             return doc
+        except NotFoundError:
+            raise
         except Exception as e:
             raise InternalError(f"Error updating document {id}") from e
 
@@ -142,6 +144,8 @@ class ArangoOperator(Cacher):
             self.expel(id)
             self.expel(id, db=PENDING_UPDATES)
             return True
+        except NotFoundError:
+            raise
         except Exception as e:
             raise InternalError(f"Error deleting document {id}") from e
 
@@ -157,6 +161,8 @@ class ArangoOperator(Cacher):
             if doc:
                 self.set(id, doc)
                 return doc
+        except NotFoundError:
+            raise
         except Exception as e:
             raise InternalError(f"Error fetching generic document {id}") from e
         return None
