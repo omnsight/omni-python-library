@@ -4,7 +4,7 @@ from typing import List, Optional
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.base import ArangoOperator
 from omni_python_library.models import MonitoringSource, OsintView
-from omni_python_library.utils import EntityNameConstant, InternalError, ArangoDBConstant
+from omni_python_library.utils import ArangoDBConstant, EntityNameConstant, InternalError
 
 logger = logging.getLogger(__name__)
 

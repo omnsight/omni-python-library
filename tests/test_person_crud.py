@@ -133,6 +133,5 @@ class TestPersonCRUD(unittest.TestCase):
         self.dal.delete_entity(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
 
 
-
 if __name__ == "__main__":
     unittest.main()

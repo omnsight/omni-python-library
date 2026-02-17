@@ -7,7 +7,6 @@ from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.utils.singleton import Singleton
 
-
 sys.modules["openai"] = MagicMock()
 
 

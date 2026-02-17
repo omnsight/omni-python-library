@@ -7,10 +7,14 @@ from omni_python_library.models.common import ArangoData, LocationData, Permissi
 
 # Relation
 class RelationMainData(BaseModel):
-    name: Optional[str] = Field(default=None, description="Name of the relation used in database key (must be ascii letters)")
+    name: Optional[str] = Field(
+        default=None, description="Name of the relation used in database key (must be ascii letters)"
+    )
     type: Optional[str] = Field(default=None, description="Type of the relation")
     confidence: Optional[int] = Field(default=None, description="Confidence score")
-    label: Optional[str] = Field(default=None, description="Label name of the relation (can be any language) to display")
+    label: Optional[str] = Field(
+        default=None, description="Label name of the relation (can be any language) to display"
+    )
     created_at: Optional[int] = Field(default=None, description="Creation timestamp")
     updated_at: Optional[int] = Field(default=None, description="Update timestamp")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
@@ -35,7 +39,9 @@ class EventMainData(BaseModel):
     type: Optional[str] = Field(default=None, description="Type of event")
     location: Optional[LocationData] = Field(default=None, description="Location of the event")
     title: Optional[str] = Field(default=None, description="Title of the event. Keep it short and clear.")
-    description: Optional[str] = Field(default=None, description="Brief description of the event. Keep it short and clear.")
+    description: Optional[str] = Field(
+        default=None, description="Brief description of the event. Keep it short and clear."
+    )
     happened_at: Optional[int] = Field(default=None, description="Timestamp when the event happened")
     updated_at: Optional[int] = Field(default=None, description="Update timestamp")
     tags: Optional[List[str]] = Field(default=None, description="Tags")
@@ -56,7 +62,9 @@ class SourceMainData(BaseModel):
     url: Optional[str] = Field(default=None, description="URL")
     name: Optional[str] = Field(default=None, description="Name of the source")
     title: Optional[str] = Field(default=None, description="Title of the source. Keep it short and clear.")
-    description: Optional[str] = Field(default=None, description="Brief description of the source. Keep it short and clear.")
+    description: Optional[str] = Field(
+        default=None, description="Brief description of the source. Keep it short and clear."
+    )
     reliability: Optional[int] = Field(default=None, description="Reliability score")
     created_at: Optional[int] = Field(default=None, description="Creation timestamp")
     updated_at: Optional[int] = Field(default=None, description="Update timestamp")
@@ -115,7 +123,9 @@ class Organization(ArangoData, Permissive, OrganizationMainData):
 class WebsiteMainData(BaseModel):
     url: Optional[str] = Field(default=None, description="URL")
     title: Optional[str] = Field(default=None, description="Title of the website. Keep it short and clear.")
-    description: Optional[str] = Field(default=None, description="Brief description of the website. Keep it short and clear.")  
+    description: Optional[str] = Field(
+        default=None, description="Brief description of the website. Keep it short and clear."
+    )
     founded_at: Optional[int] = Field(default=None, description="Founded timestamp")
     discovered_at: Optional[int] = Field(default=None, description="Discovered timestamp")
     last_visited: Optional[int] = Field(default=None, description="Last visited timestamp")

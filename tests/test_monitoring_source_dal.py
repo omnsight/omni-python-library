@@ -114,9 +114,16 @@ class TestMonitoringSourceDAL(unittest.TestCase):
             self.dal.connect_monitoring_source_to_view(view.id, ms.id)
 
             # Get Views for MS
-            views = self.dal.get_views(ms.id)
-            self.assertEqual(len(views), 1)
-            self.assertEqual(views[0].id, view.id)
+            query = f"""
+                FOR v IN 1..1 OUTBOUND @view_id GRAPH 'osint_view_graph'
+                    FILTER v._id == @ms_id
+                    RETURN v
+            """
+            bind_vars = {"view_id": view.id, "ms_id": ms.id}
+            cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
+            results = list(cursor)
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0]["_id"], ms.id)
 
             # Clean up view (optional but good practice)
             self.view_dal.delete_view(view.id)

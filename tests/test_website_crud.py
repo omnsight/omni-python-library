@@ -32,6 +32,7 @@ class TestWebsiteCRUD(unittest.TestCase):
     def setUp(self):
         self.dal = OsintDataAccessLayer()
         from omni_python_library.clients.openai import OpenAIClient
+
         OpenAIClient().init()
         self.dal.init()
 
