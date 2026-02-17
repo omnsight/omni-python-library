@@ -55,7 +55,7 @@ Run unit tests
 
 ```bash
 docker compose up -d
-python3 -m pytest
+uv run pytest
 docker compose down
 ```
 
