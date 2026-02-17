@@ -1,46 +1,23 @@
 import unittest
 
-from arango import ArangoClient as PyArangoClient
-
-from omni_python_library.clients.arangodb import ArangoDBClient
-from omni_python_library.clients.redis import RedisClient
+from omni_python_library import init_omni_library
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import PersonMainData, RelationMainData
 from omni_python_library.utils import PermissionDeniedError
-from omni_python_library.utils.singleton import Singleton
 from omni_python_library.utils.user import UserRole
 
 
 class TestRelationCRUD(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        Singleton._instances = {}
-        RedisClient().init(host="localhost", port=6379)
-        RedisClient().client.flushdb()
-
-        sys_client = PyArangoClient(hosts="http://localhost:8529")
-        sys_db = sys_client.db("_system", username="root", password="password")
-
-        if sys_db.has_database("test_osint_db"):
-            sys_db.delete_database("test_osint_db")
-
-        sys_db.create_database("test_osint_db")
-
-        ArangoDBClient().init(
-            host="http://localhost:8529", username="root", password="password", db_name="test_osint_db"
-        )
+        init_omni_library()
 
     def setUp(self):
-        self.dal = OsintDataAccessLayer()
-        from omni_python_library.clients.openai import OpenAIClient
-
-        OpenAIClient().init()
-        self.dal.init()
         # Create entities to be related
         person1_data = PersonMainData(name="Person 1", read=[UserRole.ADMIN], write=[UserRole.ADMIN])
         person2_data = PersonMainData(name="Person 2", read=[UserRole.ADMIN], write=[UserRole.ADMIN])
-        self.person1 = self.dal.create_person(person1_data, owner="test_user", roles=[UserRole.ADMIN])
-        self.person2 = self.dal.create_person(person2_data, owner="test_user", roles=[UserRole.ADMIN])
+        self.person1 = OsintDataAccessLayer().create_person(person1_data, owner="test_user", roles=[UserRole.ADMIN])
+        self.person2 = OsintDataAccessLayer().create_person(person2_data, owner="test_user", roles=[UserRole.ADMIN])
 
     def test_relation_crud(self):
         # Create
@@ -52,30 +29,30 @@ class TestRelationCRUD(unittest.TestCase):
             write=[UserRole.ADMIN],
         )
 
-        created = self.dal.create_relation(relation_data, owner="test_user", roles=[UserRole.ADMIN])
+        created = OsintDataAccessLayer().create_relation(relation_data, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(created)
         self.assertEqual(created.type, "knows")
 
         # Read
-        fetched = self.dal.get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        fetched = OsintDataAccessLayer().get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(fetched)
         self.assertEqual(fetched.type, "knows")
 
         # Update
-        updated = self.dal.update_relation(
+        updated = OsintDataAccessLayer().update_relation(
             created.id, RelationMainData(type="friends_with"), owner="test_user", roles=[UserRole.ADMIN]
         )
         self.assertEqual(updated.type, "friends_with")
 
         # Read again
-        fetched_updated = self.dal.get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        fetched_updated = OsintDataAccessLayer().get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertEqual(fetched_updated.type, "friends_with")
 
         # Delete
-        self.dal.delete_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().delete_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
 
         # Verify Delete
-        fetched_deleted = self.dal.get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        fetched_deleted = OsintDataAccessLayer().get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNone(fetched_deleted)
 
     def test_relation_crud_with_pending(self):
@@ -87,12 +64,14 @@ class TestRelationCRUD(unittest.TestCase):
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
-        created = self.dal.create_relation(relation_data, owner="test_user_pending", roles=[UserRole.ADMIN])
+        created = OsintDataAccessLayer().create_relation(
+            relation_data, owner="test_user_pending", roles=[UserRole.ADMIN]
+        )
         self.assertIsNotNone(created)
         self.assertEqual(created.type, "colleagues")
 
         # Update with in_pending=True
-        self.dal.update_relation(
+        OsintDataAccessLayer().update_relation(
             created.id,
             RelationMainData(type="reports_to"),
             owner="test_user_pending",
@@ -101,27 +80,31 @@ class TestRelationCRUD(unittest.TestCase):
         )
 
         # Read with in_pending=False (default) - should get original data
-        fetched_not_pending = self.dal.get_relation(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
+        fetched_not_pending = OsintDataAccessLayer().get_relation(
+            created.id, owner="test_user_pending", roles=[UserRole.ADMIN]
+        )
         self.assertEqual(fetched_not_pending.type, "colleagues")
 
         # Read with in_pending=True - should get merged data
-        fetched_pending = self.dal.get_relation(
+        fetched_pending = OsintDataAccessLayer().get_relation(
             created.id, owner="test_user_pending", roles=[UserRole.ADMIN], in_pending=True
         )
         self.assertEqual(fetched_pending.type, "reports_to")
 
         # Perform a final update (in_pending=False)
-        final_update = self.dal.update_relation(
+        final_update = OsintDataAccessLayer().update_relation(
             created.id, RelationMainData(type="manager_of"), owner="test_user_pending", roles=[UserRole.ADMIN]
         )
         self.assertEqual(final_update.type, "manager_of")
 
         # Read again, should be permanently updated
-        fetched_final = self.dal.get_relation(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
+        fetched_final = OsintDataAccessLayer().get_relation(
+            created.id, owner="test_user_pending", roles=[UserRole.ADMIN]
+        )
         self.assertEqual(fetched_final.type, "manager_of")
 
         # Clean up
-        self.dal.delete_relation(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().delete_relation(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
 
     def test_relation_crud_permission_denied(self):
         # Create a relation with a specific owner and roles
@@ -132,29 +115,29 @@ class TestRelationCRUD(unittest.TestCase):
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
-        created = self.dal.create_relation(relation_data, owner="owner_user", roles=[UserRole.ADMIN])
+        created = OsintDataAccessLayer().create_relation(relation_data, owner="owner_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(created)
 
         # Test creating with insufficient permissions
         with self.assertRaises(PermissionDeniedError):
-            self.dal.create_relation(relation_data, owner="non_admin_user", roles=[UserRole.USER])
+            OsintDataAccessLayer().create_relation(relation_data, owner="non_admin_user", roles=[UserRole.USER])
 
         # Test reading with wrong owner and no matching roles
         with self.assertRaises(PermissionDeniedError):
-            self.dal.get_relation(created.id, owner="another_user", roles=[UserRole.USER])
+            OsintDataAccessLayer().get_relation(created.id, owner="another_user", roles=[UserRole.USER])
 
         # Test updating with wrong owner and no matching roles
         with self.assertRaises(PermissionDeniedError):
-            self.dal.update_relation(
+            OsintDataAccessLayer().update_relation(
                 created.id, RelationMainData(type="secure_friends_with"), owner="another_user", roles=[UserRole.USER]
             )
 
         # Test deleting with wrong owner
         with self.assertRaises(PermissionDeniedError):
-            self.dal.delete_relation(created.id, owner="another_user", roles=[UserRole.ADMIN])
+            OsintDataAccessLayer().delete_relation(created.id, owner="another_user", roles=[UserRole.ADMIN])
 
         # Clean up
-        self.dal.delete_relation(created.id, owner="owner_user", roles=[UserRole.ADMIN])
+        OsintDataAccessLayer().delete_relation(created.id, owner="owner_user", roles=[UserRole.ADMIN])
 
 
 if __name__ == "__main__":

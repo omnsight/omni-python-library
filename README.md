@@ -55,7 +55,7 @@ Run unit tests
 
 ```bash
 docker compose up -d
-uv run pytest
+export $(cat .env | xargs) && uv run pytest
 docker compose down
 ```
 
