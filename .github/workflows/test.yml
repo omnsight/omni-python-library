@@ -28,11 +28,17 @@ jobs:
           pip install uv
           uv sync --extra dev
 
-      - name: Load environment variables
-        run: |
-          export $(cat .env | xargs)
-
       - name: Run tests and generate coverage report
+        env:
+          stage: "local"
+          ARANGODB_HOST: "http://localhost:8529"
+          ARANGODB_USERNAME: "root"
+          ARANGODB_PASSWORD: "password"
+          ARANGODB_DB_NAME: "test_osint_db"
+          ARANGODB_EMBEDDING_DIMENSION: "1536"
+          REDIS_HOST: "localhost"
+          REDIS_PORT: "6379"
+          REDIS_PASSWORD: ""
         run: uv run pytest
 
       - name: Stop services
