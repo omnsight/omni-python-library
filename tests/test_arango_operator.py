@@ -27,7 +27,9 @@ class TestGenerateEmbedding(unittest.TestCase):
         # Assertions
         self.assertEqual(result, [0.1, 0.2, 0.3])
         mock_openai_client.return_value.get_client.assert_called_once_with("embedding")
-        mock_client_instance.embeddings.create.assert_called_once_with(input="test text", model="text-embedding-ada-002")
+        mock_client_instance.embeddings.create.assert_called_once_with(
+            input="test text", model="text-embedding-ada-002"
+        )
 
     @patch("omni_python_library.dal.base.arango_operator.OpenAIClient")
     def test_generate_embedding_api_error(self, mock_openai_client):
@@ -44,7 +46,9 @@ class TestGenerateEmbedding(unittest.TestCase):
             operator.generate_embedding("test text")
 
         self.assertEqual(str(context.exception), "Error generating embedding")
-        mock_client_instance.embeddings.create.assert_called_once_with(input="test text", model="text-embedding-ada-002")
+        mock_client_instance.embeddings.create.assert_called_once_with(
+            input="test text", model="text-embedding-ada-002"
+        )
 
 
 if __name__ == "__main__":
