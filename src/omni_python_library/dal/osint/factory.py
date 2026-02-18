@@ -151,7 +151,6 @@ class OsintDataFactory(ArangoOperator):
                 pending_data=data.model_dump(mode="json", by_alias=True, exclude_unset=True),
             )
         else:
-            tags = " ".join(data.tags) if data.tags else ""
             doc = self._create_in_arango(
                 ArangoDBClient().get_collection(EntityNameConstant.ORGANIZATION),
                 data.model_dump(mode="json", by_alias=True, exclude_unset=True),

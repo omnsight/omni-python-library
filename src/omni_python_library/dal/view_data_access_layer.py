@@ -52,8 +52,7 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []
             for doc in cursor:
-                if isinstance(doc, dict):
-                    results.append(OsintView(**doc))
+                results.append(OsintView(**doc))
             return results
         except Exception as e:
             logger.error(f"Error executing AQL: {e}")

@@ -5,7 +5,9 @@ from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.query_tools.entity_neighborhood import search_entity_neighborhood
 from omni_python_library.dal.query_tools.event_search import search_events
-from omni_python_library.models.osint import EventMainData, LocationData, PersonMainData, RelationMainData
+from omni_python_library.models.osint import (
+    EventMainData, LocationData, OrganizationMainData, PersonMainData, RelationMainData, SourceMainData, WebsiteMainData
+)
 from omni_python_library.utils import InternalError
 from omni_python_library.utils.user import UserRole
 
@@ -107,6 +109,22 @@ class TestQueryTools(unittest.TestCase):
         e_data = EventMainData(title="Incident A", happened_at=5000)
         e = OsintDataAccessLayer().create_event(e_data, owner="test", roles=[UserRole.ADMIN])
 
+        # Create Organization
+        org_data = OrganizationMainData(name="Evil Corp")
+        org = OsintDataAccessLayer().create_organization(org_data, owner="test", roles=[UserRole.ADMIN])
+
+        # Create Website
+        web_data = WebsiteMainData(url="https://evil.com")
+        web = OsintDataAccessLayer().create_website(web_data, owner="test", roles=[UserRole.ADMIN])
+
+        # Create Source
+        src_data = SourceMainData(url="https://news.com/article1")
+        src = OsintDataAccessLayer().create_source(src_data, owner="test", roles=[UserRole.ADMIN])
+
+        # Create another Event
+        e2_data = EventMainData(title="Incident B", happened_at=6000)
+        e2 = OsintDataAccessLayer().create_event(e2_data, owner="test", roles=[UserRole.ADMIN])
+
         # Create Relation Person -> Event
         rel_data = RelationMainData(name="participant", from_id=e.id, to_id=p.id, label="involved_in")
         OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
@@ -117,6 +135,20 @@ class TestQueryTools(unittest.TestCase):
         rel3_data = RelationMainData(name="participant", from_id=e.id, to_id=p3.id, label="involved_in")
         OsintDataAccessLayer().create_relation(rel3_data, owner="test", roles=[UserRole.ADMIN])
 
+        # Create relations from the main event to other entities
+        OsintDataAccessLayer().create_relation(
+            RelationMainData(name="related", from_id=e.id, to_id=org.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+        )
+        OsintDataAccessLayer().create_relation(
+            RelationMainData(name="related", from_id=e.id, to_id=web.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+        )
+        OsintDataAccessLayer().create_relation(
+            RelationMainData(name="related", from_id=e.id, to_id=src.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+        )
+        OsintDataAccessLayer().create_relation(
+            RelationMainData(name="related", from_id=e.id, to_id=e2.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+        )
+
         # Search neighborhood of Event
         results = search_entity_neighborhood(e.id, owner="test", roles=[UserRole.ADMIN])
 
@@ -124,10 +156,18 @@ class TestQueryTools(unittest.TestCase):
         self.assertIn(p.id, ids)
         self.assertNotIn(p2.id, ids)
         self.assertIn(p3.id, ids)
+        self.assertIn(org.id, ids)
+        self.assertIn(web.id, ids)
+        self.assertIn(src.id, ids)
+        self.assertNotIn(e2.id, ids)
 
     def test_search_entity_neighborhood_missing_bind_vars(self):
         with self.assertRaises(InternalError):
             OsintDataAccessLayer().query("FOR doc IN event RETURN doc", bind_vars={})
+
+    def test_query_with_bad_query(self):
+        with self.assertRaises(InternalError):
+            OsintDataAccessLayer().query("FOR doc IN event RETUN doc", bind_vars={"owner": "test", "roles": [UserRole.ADMIN]})
 
 
 if __name__ == "__main__":

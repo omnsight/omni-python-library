@@ -157,6 +157,8 @@ class ArangoOperator(Cacher):
             if doc:
                 self.set(id, doc)
                 return doc
+        except NotFoundError:
+            raise
         except Exception as e:
             raise InternalError(f"Error fetching generic document {id}") from e
         return None
