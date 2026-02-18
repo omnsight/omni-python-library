@@ -91,6 +91,32 @@ class TestQueryTools(unittest.TestCase):
         # Check if relation is found
         self.assertTrue(len(relation_ids) > 0, "Should find relations between queried events")
 
+        # Test date range filtering
+        # Case 1: start and end
+        results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1500, 2500))
+        event_ids = {r.id for r in results if r.id.startswith("event/")}
+        self.assertEqual({e2.id}, event_ids)
+
+        # Case 2: start only
+        results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1500, None))
+        event_ids = {r.id for r in results if r.id.startswith("event/")}
+        self.assertEqual({e2.id, e5.id}, event_ids)
+
+        # Case 3: end only
+        results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(None, 2500))
+        event_ids = {r.id for r in results if r.id.startswith("event/")}
+        self.assertEqual({e1.id, e2.id}, event_ids)
+
+        # Case 4: no results
+        results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(6000, 7000))
+        event_ids = {r.id for r in results if r.id.startswith("event/")}
+        self.assertEqual(set(), event_ids)
+
+        # Case 5: all results in range
+        results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1000, 5000))
+        event_ids = {r.id for r in results if r.id.startswith("event/")}
+        self.assertEqual({e1.id, e2.id, e5.id}, event_ids)
+
     def test_search_entity_neighborhood(self):
         # Create Person
         p_data = PersonMainData(name="Alice", role="Analyst")
