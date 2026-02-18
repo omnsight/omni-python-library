@@ -18,11 +18,6 @@ jobs:
       - name: 🚀 Start services
         run: docker compose up --build -d --wait
 
-      - name: 🤖 Print models and local ai logs
-        run: |
-          curl http://localhost:8080/v1/models
-          docker logs omni-python-library-localai-1
-
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
@@ -44,9 +39,6 @@ jobs:
           REDIS_HOST: "localhost"
           REDIS_PORT: "6379"
           REDIS_PASSWORD: ""
-          EMBEDDING_AI_API_KEY: "localai"
-          EMBEDDING_AI_API_BASE_URL: "http://localhost:8080"
-          EMBEDDING_MODEL: "all-minilm"
         run: uv run pytest
 
       - name: 🛑 Stop services

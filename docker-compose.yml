@@ -11,17 +11,3 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
-
-  localai:
-    image: localai/localai:latest
-    ports:
-      - "8080:8080"
-    environment:
-      MODELS_PATH: /models
-      PRELOAD_MODELS: '[{"url": "github:mudler/LocalAI/models/embeddings/bert-embeddings.yaml", "name": "all-minilm"}]'
-      DEBUG: true
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/readyz"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
