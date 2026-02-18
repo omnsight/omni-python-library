@@ -185,4 +185,5 @@ class ArangoOperator(Cacher):
             response = client.embeddings.create(input=text, model=model)
             return response.data[0].embedding
         except Exception as e:
+            logger.exception(f"Error generating embedding from text: {text}")
             raise InternalError("Error generating embedding") from e
