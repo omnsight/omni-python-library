@@ -6,7 +6,13 @@ from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.query_tools.entity_neighborhood import search_entity_neighborhood
 from omni_python_library.dal.query_tools.event_search import search_events
 from omni_python_library.models.osint import (
-    EventMainData, LocationData, OrganizationMainData, PersonMainData, RelationMainData, SourceMainData, WebsiteMainData
+    EventMainData,
+    LocationData,
+    OrganizationMainData,
+    PersonMainData,
+    RelationMainData,
+    SourceMainData,
+    WebsiteMainData,
 )
 from omni_python_library.utils import InternalError
 from omni_python_library.utils.user import UserRole
@@ -163,16 +169,24 @@ class TestQueryTools(unittest.TestCase):
 
         # Create relations from the main event to other entities
         OsintDataAccessLayer().create_relation(
-            RelationMainData(name="related", from_id=e.id, to_id=org.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+            RelationMainData(name="related", from_id=e.id, to_id=org.id, label="related_to"),
+            owner="test",
+            roles=[UserRole.ADMIN],
         )
         OsintDataAccessLayer().create_relation(
-            RelationMainData(name="related", from_id=e.id, to_id=web.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+            RelationMainData(name="related", from_id=e.id, to_id=web.id, label="related_to"),
+            owner="test",
+            roles=[UserRole.ADMIN],
         )
         OsintDataAccessLayer().create_relation(
-            RelationMainData(name="related", from_id=e.id, to_id=src.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+            RelationMainData(name="related", from_id=e.id, to_id=src.id, label="related_to"),
+            owner="test",
+            roles=[UserRole.ADMIN],
         )
         OsintDataAccessLayer().create_relation(
-            RelationMainData(name="related", from_id=e.id, to_id=e2.id, label="related_to"), owner="test", roles=[UserRole.ADMIN]
+            RelationMainData(name="related", from_id=e.id, to_id=e2.id, label="related_to"),
+            owner="test",
+            roles=[UserRole.ADMIN],
         )
 
         # Search neighborhood of Event
@@ -193,7 +207,9 @@ class TestQueryTools(unittest.TestCase):
 
     def test_query_with_bad_query(self):
         with self.assertRaises(InternalError):
-            OsintDataAccessLayer().query("FOR doc IN event RETUN doc", bind_vars={"owner": "test", "roles": [UserRole.ADMIN]})
+            OsintDataAccessLayer().query(
+                "FOR doc IN event RETUN doc", bind_vars={"owner": "test", "roles": [UserRole.ADMIN]}
+            )
 
 
 if __name__ == "__main__":

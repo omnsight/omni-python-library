@@ -3,7 +3,7 @@ import unittest
 from omni_python_library import init_omni_library
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import EventMainData
-from omni_python_library.utils import PermissionDeniedError, NotFoundError, InternalError
+from omni_python_library.utils import InternalError, NotFoundError, PermissionDeniedError
 from omni_python_library.utils.user import UserRole
 
 
@@ -156,8 +156,7 @@ class TestEventCRUD(unittest.TestCase):
         self.assertIsNotNone(created)
 
         # Mock the ArangoDB client to raise an exception during update
-        with unittest.mock.patch(
-            "omni_python_library.dal.base.arango_operator.ArangoDBClient") as mock_arango_client:
+        with unittest.mock.patch("omni_python_library.dal.base.arango_operator.ArangoDBClient") as mock_arango_client:
             mock_collection = unittest.mock.Mock()
             mock_collection.update.side_effect = Exception("Database connection failed")
             mock_arango_client.return_value.get_collection.return_value = mock_collection
@@ -184,8 +183,7 @@ class TestEventCRUD(unittest.TestCase):
         self.assertIsNotNone(created)
 
         # Mock the ArangoDB client to raise an exception during delete
-        with unittest.mock.patch(
-            "omni_python_library.dal.base.arango_operator.ArangoDBClient") as mock_arango_client:
+        with unittest.mock.patch("omni_python_library.dal.base.arango_operator.ArangoDBClient") as mock_arango_client:
             mock_collection = unittest.mock.Mock()
             mock_collection.delete.side_effect = Exception("Database connection failed")
             mock_arango_client.return_value.get_collection.return_value = mock_collection
@@ -209,8 +207,7 @@ class TestEventCRUD(unittest.TestCase):
         )
 
         # Mock the ArangoDB client to raise an exception during create
-        with unittest.mock.patch(
-            "omni_python_library.dal.osint.factory.ArangoDBClient") as mock_arango_client:
+        with unittest.mock.patch("omni_python_library.dal.osint.factory.ArangoDBClient") as mock_arango_client:
             mock_collection = unittest.mock.Mock()
             mock_collection.insert.side_effect = Exception("Database connection failed")
             mock_arango_client.return_value.get_collection.return_value = mock_collection
