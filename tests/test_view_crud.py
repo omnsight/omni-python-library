@@ -6,7 +6,7 @@ from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models.osint import PersonMainData
 from omni_python_library.models.view import OsintViewMainData, ViewConfig, ViewMode, ViewUI
-from omni_python_library.utils import NotFoundError, PermissionDeniedError
+from omni_python_library.utils import InternalError, NotFoundError, PermissionDeniedError
 from omni_python_library.utils.user import UserRole
 
 # Configure logging
@@ -121,6 +121,10 @@ class TestViewCRUD(unittest.TestCase):
 
         # Clean up
         ViewDataAccessLayer().delete_view(created.id, owner="owner_user", roles=[UserRole.ADMIN])
+
+    def test_query_views_with_invalid_limit(self):
+        with self.assertRaises(InternalError):
+            ViewDataAccessLayer().query_views("any", owner="test_user", limit=-1)
 
 
 if __name__ == "__main__":

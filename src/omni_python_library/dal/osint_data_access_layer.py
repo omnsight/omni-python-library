@@ -68,9 +68,6 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
             results = []
 
             for doc in cursor:
-                if not isinstance(doc, dict) or not doc.get("_id"):
-                    continue
-
                 pending = self.get(doc["_id"], db=PENDING_UPDATES) or {} if in_pending else {}
 
                 if "_from" in doc and "_to" in doc:
