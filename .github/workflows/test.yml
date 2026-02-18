@@ -12,26 +12,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: 🛒 Check out repository
         uses: actions/checkout@v4
 
-      - name: Start services
+      - name: 🚀 Start services
         run: docker compose up --build -d --wait
 
-      - name: Print available models in local ai
-        run: curl http://localhost:8080/v1/models
+      - name: 🤖 Print models and local ai logs
+        run: |
+          curl http://localhost:8080/v1/models
+          docker logs omni-python-library-localai-1
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: |
           pip install uv
           uv sync --extra dev
 
-      - name: Run tests and generate coverage report
+      - name: 🧪 Run tests and generate coverage report
         env:
           stage: "local"
           ARANGODB_HOST: "http://localhost:8529"
@@ -47,11 +49,11 @@ jobs:
           EMBEDDING_MODEL: "all-minilm"
         run: uv run pytest
 
-      - name: Stop services
+      - name: 🛑 Stop services
         if: always()
         run: docker compose down
 
-      - name: Upload coverage to Codecov
+      - name: ⬆️ Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
