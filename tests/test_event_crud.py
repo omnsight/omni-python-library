@@ -3,7 +3,7 @@ import unittest
 from omni_python_library import init_omni_library
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import EventMainData
-from omni_python_library.utils import PermissionDeniedError
+from omni_python_library.utils import PermissionDeniedError, NotFoundError
 from omni_python_library.utils.user import UserRole
 
 
@@ -125,6 +125,23 @@ class TestEventCRUD(unittest.TestCase):
 
         # Clean up
         OsintDataAccessLayer().delete_entity(created.id, owner="owner_user", roles=[UserRole.ADMIN])
+
+    def test_event_not_found(self):
+        bad_id = "events/bad_id"
+
+        # Test reading with a non-existent ID
+        with self.assertRaises(NotFoundError):
+            OsintDataAccessLayer().get_event(bad_id, owner="test_user", roles=[UserRole.ADMIN])
+
+        # Test updating with a non-existent ID
+        with self.assertRaises(NotFoundError):
+            OsintDataAccessLayer().update_event(
+                bad_id, EventMainData(type="Should not exist"), owner="test_user", roles=[UserRole.ADMIN]
+            )
+
+        # Test deleting with a non-existent ID
+        with self.assertRaises(NotFoundError):
+            OsintDataAccessLayer().delete_entity(bad_id, owner="test_user", roles=[UserRole.ADMIN])
 
 
 if __name__ == "__main__":
