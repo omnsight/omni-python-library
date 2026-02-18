@@ -44,6 +44,8 @@ Upgrade dependencies:
 ```bash
 uv lock --upgrade
 uv sync --extra dev
+
+uv run poe clean
 ```
 
 Run the application:
@@ -54,9 +56,12 @@ uv run uvicorn src.main:app --reload
 Run unit tests
 
 ```bash
-docker compose up -d
+docker compose up -d --wait
 export $(cat .env | xargs) && uv run pytest
 docker compose down
+
+# Get avaiable models in local ai
+curl http://localhost:8080/v1/models
 ```
 
 Format the code using black and isort:

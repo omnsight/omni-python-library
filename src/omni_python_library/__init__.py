@@ -1,5 +1,5 @@
 from omni_python_library.clients.arangodb import ArangoDBClient
-from omni_python_library.clients.openai import OpenAIClient
+from omni_python_library.clients.openai_client import OpenAIClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.monitor_trigger_data_access_layer import MonitorTriggerDataAccessLayer
 from omni_python_library.dal.monitoring_source_data_access_layer import MonitoringSourceDataAccessLayer

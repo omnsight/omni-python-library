@@ -6,15 +6,11 @@ from omni_python_library import init_omni_library
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.redis import RedisClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.utils.singleton import Singleton
-
-sys.modules["openai"] = MagicMock()
 
 
 class TestInitialization(unittest.TestCase):
     def setUp(self):
-        # Reset Singletons
-        Singleton._instances = {}
+        init_omni_library()
 
     @patch("omni_python_library.clients.redis.Redis")
     def test_redis_client_init(self, mock_redis):
@@ -69,10 +65,6 @@ class TestInitialization(unittest.TestCase):
 
         dal = OsintDataAccessLayer()
         dal.init()
-
-    def test_init_omni_library(self):
-        """Test the main library initialization function."""
-        init_omni_library()
 
 
 if __name__ == "__main__":
