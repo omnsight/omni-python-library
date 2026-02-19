@@ -24,29 +24,29 @@ class TestRelationCRUD(unittest.TestCase):
         relation_data = RelationMainData(
             from_id=self.person1.id,
             to_id=self.person2.id,
-            type="knows",
+            name="knows",
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
 
         created = OsintDataAccessLayer().create_relation(relation_data, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(created)
-        self.assertEqual(created.type, "knows")
+        self.assertEqual(created.name, "knows")
 
         # Read
         fetched = OsintDataAccessLayer().get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNotNone(fetched)
-        self.assertEqual(fetched.type, "knows")
+        self.assertEqual(fetched.name, "knows")
 
         # Update
         updated = OsintDataAccessLayer().update_relation(
-            created.id, RelationMainData(type="friends_with"), owner="test_user", roles=[UserRole.ADMIN]
+            created.id, RelationMainData(name="friends_with"), owner="test_user", roles=[UserRole.ADMIN]
         )
-        self.assertEqual(updated.type, "friends_with")
+        self.assertEqual(updated.name, "friends_with")
 
         # Read again
         fetched_updated = OsintDataAccessLayer().get_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
-        self.assertEqual(fetched_updated.type, "friends_with")
+        self.assertEqual(fetched_updated.name, "friends_with")
 
         # Delete
         OsintDataAccessLayer().delete_relation(created.id, owner="test_user", roles=[UserRole.ADMIN])
@@ -60,7 +60,7 @@ class TestRelationCRUD(unittest.TestCase):
         relation_data = RelationMainData(
             from_id=self.person1.id,
             to_id=self.person2.id,
-            type="colleagues",
+            name="colleagues",
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
@@ -68,12 +68,12 @@ class TestRelationCRUD(unittest.TestCase):
             relation_data, owner="test_user_pending", roles=[UserRole.ADMIN]
         )
         self.assertIsNotNone(created)
-        self.assertEqual(created.type, "colleagues")
+        self.assertEqual(created.name, "colleagues")
 
         # Update with in_pending=True
         OsintDataAccessLayer().update_relation(
             created.id,
-            RelationMainData(type="reports_to"),
+            RelationMainData(name="reports_to"),
             owner="test_user_pending",
             roles=[UserRole.ADMIN],
             in_pending=True,
@@ -83,25 +83,25 @@ class TestRelationCRUD(unittest.TestCase):
         fetched_not_pending = OsintDataAccessLayer().get_relation(
             created.id, owner="test_user_pending", roles=[UserRole.ADMIN]
         )
-        self.assertEqual(fetched_not_pending.type, "colleagues")
+        self.assertEqual(fetched_not_pending.name, "colleagues")
 
         # Read with in_pending=True - should get merged data
         fetched_pending = OsintDataAccessLayer().get_relation(
             created.id, owner="test_user_pending", roles=[UserRole.ADMIN], in_pending=True
         )
-        self.assertEqual(fetched_pending.type, "reports_to")
+        self.assertEqual(fetched_pending.name, "reports_to")
 
         # Perform a final update (in_pending=False)
         final_update = OsintDataAccessLayer().update_relation(
-            created.id, RelationMainData(type="manager_of"), owner="test_user_pending", roles=[UserRole.ADMIN]
+            created.id, RelationMainData(name="manager_of"), owner="test_user_pending", roles=[UserRole.ADMIN]
         )
-        self.assertEqual(final_update.type, "manager_of")
+        self.assertEqual(final_update.name, "manager_of")
 
         # Read again, should be permanently updated
         fetched_final = OsintDataAccessLayer().get_relation(
             created.id, owner="test_user_pending", roles=[UserRole.ADMIN]
         )
-        self.assertEqual(fetched_final.type, "manager_of")
+        self.assertEqual(fetched_final.name, "manager_of")
 
         # Clean up
         OsintDataAccessLayer().delete_relation(created.id, owner="test_user_pending", roles=[UserRole.ADMIN])
@@ -111,7 +111,7 @@ class TestRelationCRUD(unittest.TestCase):
         relation_data = RelationMainData(
             from_id=self.person1.id,
             to_id=self.person2.id,
-            type="secure_knows",
+            name="secure_knows",
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
@@ -129,7 +129,7 @@ class TestRelationCRUD(unittest.TestCase):
         # Test updating with wrong owner and no matching roles
         with self.assertRaises(PermissionDeniedError):
             OsintDataAccessLayer().update_relation(
-                created.id, RelationMainData(type="secure_friends_with"), owner="another_user", roles=[UserRole.USER]
+                created.id, RelationMainData(name="secure_friends_with"), owner="another_user", roles=[UserRole.USER]
             )
 
         # Test deleting with wrong owner
