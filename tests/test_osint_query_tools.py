@@ -79,7 +79,7 @@ class TestQueryTools(unittest.TestCase):
 
         # Create Relation between E1 and E2
         rel_data = RelationMainData(name="link", from_id=e1.id, to_id=e2.id, label="related_to")
-        OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
+        r1 = OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
 
         # Search events (filter by country US to get E1 and E2)
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US")
@@ -101,27 +101,37 @@ class TestQueryTools(unittest.TestCase):
         # Case 1: start and end
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1500, 2500))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
+        relation_ids = {r.id for r in results if "event_link_event" in r.id}
         self.assertEqual({e2.id}, event_ids)
+        self.assertEqual(set(), relation_ids)
 
         # Case 2: start only
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1500, None))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
+        relation_ids = {r.id for r in results if "event_link_event" in r.id}
         self.assertEqual({e2.id, e5.id}, event_ids)
+        self.assertEqual(set(), relation_ids)
 
         # Case 3: end only
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(None, 2500))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
+        relation_ids = {r.id for r in results if "event_link_event" in r.id}
         self.assertEqual({e1.id, e2.id}, event_ids)
+        self.assertEqual({r1.id}, relation_ids)
 
         # Case 4: no results
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(6000, 7000))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
+        relation_ids = {r.id for r in results if "event_link_event" in r.id}
         self.assertEqual(set(), event_ids)
+        self.assertEqual(set(), relation_ids)
 
         # Case 5: all results in range
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1000, 5000))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
+        relation_ids = {r.id for r in results if "event_link_event" in r.id}
         self.assertEqual({e1.id, e2.id, e5.id}, event_ids)
+        self.assertEqual({r1.id}, relation_ids)
 
     def test_search_entity_neighborhood(self):
         # Create Person
