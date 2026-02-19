@@ -11,6 +11,7 @@ from omni_python_library.models.osint import (
     OrganizationMainData,
     PersonMainData,
     RelationMainData,
+    Relation,
     SourceMainData,
     WebsiteMainData,
 )
@@ -169,31 +170,31 @@ class TestQueryTools(unittest.TestCase):
 
         # Create Relation Person -> Event
         rel_data = RelationMainData(name="participant", from_id=e.id, to_id=p.id, label="involved_in")
-        OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
+        r1 = OsintDataAccessLayer().create_relation(rel_data, owner="test", roles=[UserRole.ADMIN])
 
         rel2_data = RelationMainData(name="participant", from_id=e.id, to_id=p2.id, label="involved_in")
-        OsintDataAccessLayer().create_relation(rel2_data, owner="test", roles=[UserRole.ADMIN])
+        r2 = OsintDataAccessLayer().create_relation(rel2_data, owner="test", roles=[UserRole.ADMIN])
 
         rel3_data = RelationMainData(name="participant", from_id=e.id, to_id=p3.id, label="involved_in")
-        OsintDataAccessLayer().create_relation(rel3_data, owner="test", roles=[UserRole.ADMIN])
+        r3 = OsintDataAccessLayer().create_relation(rel3_data, owner="test", roles=[UserRole.ADMIN])
 
         # Create relations from the main event to other entities
-        OsintDataAccessLayer().create_relation(
+        r_org = OsintDataAccessLayer().create_relation(
             RelationMainData(name="related", from_id=e.id, to_id=org.id, label="related_to"),
             owner="test",
             roles=[UserRole.ADMIN],
         )
-        OsintDataAccessLayer().create_relation(
+        r_web = OsintDataAccessLayer().create_relation(
             RelationMainData(name="related", from_id=e.id, to_id=web.id, label="related_to"),
             owner="test",
             roles=[UserRole.ADMIN],
         )
-        OsintDataAccessLayer().create_relation(
+        r_src = OsintDataAccessLayer().create_relation(
             RelationMainData(name="related", from_id=e.id, to_id=src.id, label="related_to"),
             owner="test",
             roles=[UserRole.ADMIN],
         )
-        OsintDataAccessLayer().create_relation(
+        r_e2 = OsintDataAccessLayer().create_relation(
             RelationMainData(name="related", from_id=e.id, to_id=e2.id, label="related_to"),
             owner="test",
             roles=[UserRole.ADMIN],
@@ -210,6 +211,15 @@ class TestQueryTools(unittest.TestCase):
         self.assertIn(web.id, ids)
         self.assertIn(src.id, ids)
         self.assertNotIn(e2.id, ids)
+
+        relation_ids = {r.id for r in results if isinstance(r, Relation)}
+        self.assertIn(r1.id, relation_ids)
+        self.assertNotIn(r2.id, relation_ids)
+        self.assertIn(r3.id, relation_ids)
+        self.assertIn(r_org.id, relation_ids)
+        self.assertIn(r_web.id, relation_ids)
+        self.assertIn(r_src.id, relation_ids)
+        self.assertNotIn(r_e2.id, relation_ids)
 
     def test_search_entity_neighborhood_missing_bind_vars(self):
         with self.assertRaises(InternalError):
