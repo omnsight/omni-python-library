@@ -10,8 +10,8 @@ from omni_python_library.models.osint import (
     LocationData,
     OrganizationMainData,
     PersonMainData,
-    RelationMainData,
     Relation,
+    RelationMainData,
     SourceMainData,
     WebsiteMainData,
 )
