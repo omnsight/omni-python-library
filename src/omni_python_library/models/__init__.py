@@ -1,6 +1,6 @@
 from omni_python_library.models.common import ArangoData, LocationData, Permissive
 from omni_python_library.models.monitor import MonitoringSource, MonitoringSourceMainData, SourceType
-from omni_python_library.models.monitor_trigger import MonitorTrigger
+from omni_python_library.models.monitor_trigger import MonitorTrigger, MonitorTriggerMainData
 from omni_python_library.models.osint import (
     Event,
     EventMainData,
@@ -42,4 +42,5 @@ __all__ = [
     "ViewMode",
     "ViewUI",
     "MonitorTrigger",
+    "MonitorTriggerMainData",
 ]
