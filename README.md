@@ -29,12 +29,13 @@ A Python library for interacting with the Omni platform's backend, providing dat
 
 1. Clone the repo:
 ```bash
-git clone https://github.com/your-repo/omni-python-library.git
+git clone https://github.com/omnsight/omni-python-library.git
 cd omni-python-library
 ```
 
 2. Install dependencies:
 ```bash
+uv lock --upgrade
 uv sync --extra dev
 ```
 
