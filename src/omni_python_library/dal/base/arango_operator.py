@@ -6,7 +6,8 @@ from arango.collection import StandardCollection
 
 from omni_python_library.clients import PENDING_UPDATES, ArangoDBClient, OpenAIClient
 from omni_python_library.dal.base.cacher import Cacher
-from omni_python_library.utils import InternalError, LLMConstant, NotFoundError, PermissionDeniedError, UserRole
+from omni_python_library.utils.config import LLMConstant, UserRole
+from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,7 @@ from omni_python_library.models import (
     Website,
     WebsiteMainData,
 )
-from omni_python_library.utils import EntityNameConstant
+from omni_python_library.utils.config import EntityNameConstant
 
 logger = logging.getLogger(__name__)
 

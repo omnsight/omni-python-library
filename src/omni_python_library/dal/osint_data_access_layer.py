@@ -1,10 +1,11 @@
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 from omni_python_library.clients import PENDING_UPDATES, ArangoDBClient
 from omni_python_library.dal.osint import OsintDataDestroyer, OsintDataFactory, OsintDataMutator
 from omni_python_library.models import Event, Organization, Person, Relation, Source, Website
-from omni_python_library.utils import ArangoDBConstant, EntityNameConstant, InternalError
+from omni_python_library.utils.config import ArangoDBConstant, EntityNameConstant
+from omni_python_library.utils.errors import InternalError
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,9 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
 
         if "owner" not in bind_vars or "roles" not in bind_vars:
             raise InternalError("bind_vars must contain owner and roles")
+
+        if ("offset" in bind_vars) != ("limit" in bind_vars):
+            raise InternalError("bind_vars must contain both offset and limit, or neither")
 
         try:
             cursor = ArangoDBClient().db.aql.execute(query_str, bind_vars=bind_vars)

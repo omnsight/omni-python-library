@@ -6,8 +6,8 @@ from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models.osint import PersonMainData
 from omni_python_library.models.view import OsintViewMainData, ViewConfig, ViewMode, ViewUI
-from omni_python_library.utils import InternalError, NotFoundError, PermissionDeniedError
-from omni_python_library.utils.user import UserRole
+from omni_python_library.utils.config import UserRole
+from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)

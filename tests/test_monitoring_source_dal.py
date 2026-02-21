@@ -7,8 +7,8 @@ from omni_python_library.dal.monitoring_source_data_access_layer import Monitori
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models import MonitoringSourceMainData, OsintViewMainData, SourceType
-from omni_python_library.utils import PermissionDeniedError
-from omni_python_library.utils.user import UserRole
+from omni_python_library.utils.config import UserRole
+from omni_python_library.utils.errors import PermissionDeniedError
 
 
 class TestMonitoringSourceDAL(unittest.TestCase):
@@ -122,6 +122,38 @@ class TestMonitoringSourceDAL(unittest.TestCase):
         self.assertIsInstance(results, list)
         if len(results) > 0:
             self.assertEqual(results[0].id, ms.id)
+
+    def test_query_monitoring_sources_with_offset(self):
+        # Create 2 MS
+        ms1 = MonitoringSourceDataAccessLayer().create_monitoring_source(
+            self.ms_data, owner=self.user_id, roles=[UserRole.ADMIN]
+        )
+        self.created_ids.append((ms1.id, self.user_id))
+        ms2_data = self.ms_data.model_copy()
+        ms2_data.name = "Test Source DAL 2"
+        ms2 = MonitoringSourceDataAccessLayer().create_monitoring_source(
+            ms2_data, owner=self.user_id, roles=[UserRole.ADMIN]
+        )
+        self.created_ids.append((ms2.id, self.user_id))
+
+        # Wait for index to update (ArangoSearch is eventually consistent)
+        time.sleep(2)
+
+        # Query with limit 1 and offset 1
+        results = MonitoringSourceDataAccessLayer().query_monitoring_sources(
+            "Test", owner=self.user_id, limit=1, offset=1
+        )
+        self.assertEqual(len(results), 1)
+
+        # Query with limit 2
+        all_results = MonitoringSourceDataAccessLayer().query_monitoring_sources("Test", owner=self.user_id, limit=2)
+        self.assertEqual(len(all_results), 2)
+
+        # The single result with offset should be one of the two results
+        self.assertIn(results[0].id, [r.id for r in all_results])
+
+        # And it should not be the first one
+        self.assertNotEqual(results[0].id, all_results[0].id)
 
     def test_monitoring_source_permission_denied(self):
         # Create a source with a specific owner

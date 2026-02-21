@@ -6,7 +6,7 @@ from omni_python_library.dal.monitoring_source.fetcher import MonitoringSourceFe
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models import MonitoringSource, MonitoringSourceMainData, RelationMainData
-from omni_python_library.utils import NotFoundError
+from omni_python_library.utils.errors import NotFoundError
 
 logger = logging.getLogger(__name__)
 

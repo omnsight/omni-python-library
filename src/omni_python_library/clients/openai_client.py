@@ -2,8 +2,8 @@ from typing import Dict, Optional, Tuple
 
 from openai import OpenAI
 
-from omni_python_library.utils import BadParameterError, InternalError
-from omni_python_library.utils.singleton import Singleton
+from omni_python_library.utils import Singleton
+from omni_python_library.utils.errors import BadParameterError, InternalError
 
 
 class OpenAIClient(Singleton):

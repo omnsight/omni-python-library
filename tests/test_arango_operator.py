@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from omni_python_library import init_omni_library
 from omni_python_library.dal.base.arango_operator import ArangoOperator
-from omni_python_library.utils import InternalError
+from omni_python_library.utils.errors import InternalError
 
 
 class TestGenerateEmbedding(unittest.TestCase):

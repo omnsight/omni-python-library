@@ -8,7 +8,8 @@ from omni_python_library.dal.monitoring_source import (
     MonitoringSourceDataMutator,
 )
 from omni_python_library.models import MonitoringSource
-from omni_python_library.utils import EntityNameConstant, InternalError
+from omni_python_library.utils.config import EntityNameConstant
+from omni_python_library.utils.errors import InternalError
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,10 @@ class MonitoringSourceDataAccessLayer(
             },
         )
 
-    def query_monitoring_sources(self, text: str, owner: str, limit: int = 100) -> List[MonitoringSource]:
-        logger.debug(f"Querying monitoring sources by text: {text} and owner: {owner}")
+    def query_monitoring_sources(
+        self, text: str, owner: str, limit: int = 100, offset: int = 0
+    ) -> List[MonitoringSource]:
+        logger.debug(f"Querying monitoring sources by text: {text}, owner: {owner}, limit: {limit}, offset: {offset}")
 
         query = f"""
             LET terms = TOKENS(@text, "text_en")
@@ -50,11 +53,11 @@ class MonitoringSourceDataAccessLayer(
                     "text_en"
                 )
                 FILTER doc.owner == @owner
-                LIMIT @limit
+                LIMIT @offset, @limit
                 RETURN doc
         """
 
-        bind_vars = {"text": text, "owner": owner, "limit": limit}
+        bind_vars = {"text": text, "owner": owner, "limit": limit, "offset": offset}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []
