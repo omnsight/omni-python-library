@@ -1,4 +1,5 @@
 ## Omni Python Library
+[![codecov](https://codecov.io/github/omnsight/omni-python-library/graph/badge.svg?token=WGI02I2208)](https://codecov.io/github/omnsight/omni-python-library)
 
 A Python library for interacting with the Omni platform's backend, providing data access layers for various services.
 
