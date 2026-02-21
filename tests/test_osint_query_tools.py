@@ -15,8 +15,8 @@ from omni_python_library.models.osint import (
     SourceMainData,
     WebsiteMainData,
 )
-from omni_python_library.utils import InternalError
-from omni_python_library.utils.user import UserRole
+from omni_python_library.utils.config import UserRole
+from omni_python_library.utils.errors import InternalError
 
 
 class TestQueryTools(unittest.TestCase):
@@ -229,6 +229,16 @@ class TestQueryTools(unittest.TestCase):
         with self.assertRaises(InternalError):
             OsintDataAccessLayer().query(
                 "FOR doc IN event RETUN doc", bind_vars={"owner": "test", "roles": [UserRole.ADMIN]}
+            )
+
+    def test_query_with_offset_or_limit_only(self):
+        with self.assertRaises(InternalError):
+            OsintDataAccessLayer().query(
+                "FOR doc IN event RETURN doc", bind_vars={"owner": "test", "roles": [UserRole.ADMIN], "offset": 1}
+            )
+        with self.assertRaises(InternalError):
+            OsintDataAccessLayer().query(
+                "FOR doc IN event RETURN doc", bind_vars={"owner": "test", "roles": [UserRole.ADMIN], "limit": 1}
             )
 
 

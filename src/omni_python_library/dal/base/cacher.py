@@ -5,7 +5,8 @@ from typing import Any, Dict, Optional
 from cachetools import TTLCache
 
 from omni_python_library.clients.redis import CACHER, MONITORING, PENDING_UPDATES, RedisClient
-from omni_python_library.utils import InternalError, Singleton
+from omni_python_library.utils import Singleton
+from omni_python_library.utils.errors import InternalError
 
 logger = logging.getLogger(__name__)
 

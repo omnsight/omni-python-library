@@ -2,7 +2,7 @@ from typing import List, Union
 
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models import Event, Organization, Person, Relation, Source, Website
-from omni_python_library.utils import ArangoDBConstant
+from omni_python_library.utils.config import ArangoDBConstant
 
 
 def search_entity_neighborhood(
@@ -10,6 +10,7 @@ def search_entity_neighborhood(
     owner: str,
     roles: List[str],
     limit: int = 50,
+    offset: int = 0,
     in_pending: bool = False,
 ) -> List[Union[Relation, Event, Source, Person, Organization, Website]]:
     """
@@ -17,17 +18,18 @@ def search_entity_neighborhood(
 
     :param entity_id: The ID of the entity to start the search from.
     :param limit: Maximum number of entities to return.
+    :param offset: The number of documents to skip.
     :param owner: The owner of the documents to filter by.
     :param roles: The roles to filter by.
     :return: A list of entities and relations found 1 edge away.
     """
-    bind_vars = {"entity_id": entity_id, "limit": limit, "owner": owner, "roles": roles}
+    bind_vars = {"entity_id": entity_id, "limit": limit, "offset": offset, "owner": owner, "roles": roles}
 
     query = f"""
     LET traversal = (
         FOR v, e IN 1..1 ANY @entity_id GRAPH '{ArangoDBConstant.EVENT_RELATED_GRAPH}'
             FILTER (v.owner == @owner OR LENGTH(INTERSECTION(v.read, @roles)) > 0)
-            LIMIT @limit
+            LIMIT @offset, @limit
             RETURN {{ v: v, e: e }}
     )
     LET vertices = (FOR t IN traversal RETURN t.v)

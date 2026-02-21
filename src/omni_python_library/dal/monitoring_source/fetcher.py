@@ -4,7 +4,8 @@ from typing import List, Optional
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.base import ArangoOperator
 from omni_python_library.models import MonitoringSource, OsintView
-from omni_python_library.utils import ArangoDBConstant, EntityNameConstant, InternalError
+from omni_python_library.utils.config import ArangoDBConstant, EntityNameConstant
+from omni_python_library.utils.errors import InternalError
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +21,16 @@ class MonitoringSourceFetcher(ArangoOperator):
             return MonitoringSource(**doc)
         return None
 
-    def get_monitoring_sources_by_user(self, owner: str, limit: int = 100) -> List[MonitoringSource]:
-        logger.debug(f"Getting monitoring sources for user: {owner}")
+    def get_monitoring_sources_by_user(self, owner: str, limit: int = 100, offset: int = 0) -> List[MonitoringSource]:
+        logger.debug(f"Getting monitoring sources for user: {owner}, limit: {limit}, offset: {offset}")
         query = f"""
             FOR doc IN {EntityNameConstant.MONITORING_SOURCE}
                 FILTER doc.owner == @owner
                 SORT doc.last_reviewed DESC
-                LIMIT @limit
+                LIMIT @offset, @limit
                 RETURN doc
         """
-        bind_vars = {"owner": owner, "limit": limit}
+        bind_vars = {"owner": owner, "limit": limit, "offset": offset}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []

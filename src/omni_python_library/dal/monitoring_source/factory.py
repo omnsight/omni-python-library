@@ -5,7 +5,7 @@ from typing import List
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.base import ArangoOperator
 from omni_python_library.models import MonitoringSource, MonitoringSourceMainData
-from omni_python_library.utils import EntityNameConstant
+from omni_python_library.utils.config import EntityNameConstant
 
 logger = logging.getLogger(__name__)
 

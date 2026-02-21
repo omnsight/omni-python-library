@@ -3,8 +3,8 @@ import unittest
 from omni_python_library import init_omni_library
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models.osint import WebsiteMainData
-from omni_python_library.utils import PermissionDeniedError
-from omni_python_library.utils.user import UserRole
+from omni_python_library.utils.config import UserRole
+from omni_python_library.utils.errors import PermissionDeniedError
 
 
 class TestWebsiteCRUD(unittest.TestCase):

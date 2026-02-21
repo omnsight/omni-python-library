@@ -6,7 +6,7 @@ from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view.fetcher import ViewDataFetcher
 from omni_python_library.models import OsintView, OsintViewMainData, Permissive, RelationMainData, ViewConfig
-from omni_python_library.utils import InternalError, NotFoundError
+from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +39,6 @@ class ViewDataMutator(ViewDataFetcher):
         # Check write permission
         required_roles = doc.get("write", [])
         doc_owner = doc.get("owner")
-
-        # We need to import PermissionDeniedError if not available, but it is imported in dal/base/arango_operator.py
-        # Check imports in this file.
-        from omni_python_library.utils import PermissionDeniedError
 
         if not self._check_auth(owner, roles, required_roles, doc_owner):
             raise PermissionDeniedError(f"Permission denied to update view {view_id}. User: {owner}, Roles: {roles}")

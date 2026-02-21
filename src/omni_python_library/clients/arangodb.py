@@ -3,7 +3,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 from arango import ArangoClient
 from arango.collection import StandardCollection
 
-from omni_python_library.utils import NotFoundError, Singleton
+from omni_python_library.utils import Singleton
+from omni_python_library.utils.errors import NotFoundError
 
 
 class ArangoDBClient(Singleton):

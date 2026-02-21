@@ -4,7 +4,8 @@ from typing import List
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.view import ViewDataDestroyer, ViewDataFactory, ViewDataMutator
 from omni_python_library.models import OsintView
-from omni_python_library.utils import ArangoDBConstant, EntityNameConstant, InternalError
+from omni_python_library.utils.config import ArangoDBConstant, EntityNameConstant
+from omni_python_library.utils.errors import InternalError
 
 logger = logging.getLogger(__name__)
 
@@ -35,19 +36,19 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
             lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None,
         )
 
-    def query_views(self, text: str, owner: str, limit: int = 100) -> List[OsintView]:
-        logger.debug(f"Querying views by text: {text} and owner: {owner}")
+    def query_views(self, text: str, owner: str, limit: int = 100, offset: int = 0) -> List[OsintView]:
+        logger.debug(f"Querying views by text: {text}, owner: {owner}, limit: {limit}, offset: {offset}")
 
         # Use FILTER instead of SEARCH to avoid "collection or view not found" error with inverted index
         query = f"""
             FOR doc IN {EntityNameConstant.VIEW}
                 FILTER (CONTAINS(LOWER(doc.name), LOWER(@text)) OR CONTAINS(LOWER(doc.description), LOWER(@text)))
                 FILTER doc.owner == @owner
-                LIMIT @limit
+                LIMIT @offset, @limit
                 RETURN doc
         """
 
-        bind_vars = {"text": text, "owner": owner, "limit": limit}
+        bind_vars = {"text": text, "owner": owner, "limit": limit, "offset": offset}
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []

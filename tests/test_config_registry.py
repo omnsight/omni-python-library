@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import mock_open, patch
 
-from omni_python_library.utils.config_registry import ConfigRegistry
+from omni_python_library.utils.config import ConfigRegistry
 from omni_python_library.utils.singleton import Singleton
 
 

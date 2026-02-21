@@ -7,27 +7,6 @@ from omni_python_library.utils.singleton import Singleton
 logger = logging.getLogger(__name__)
 
 
-class EntityNameConstant:
-    EVENT = "event"
-    PERSON = "person"
-    ORGANIZATION = "organization"
-    WEBSITE = "website"
-    SOURCE = "source"
-    RELATION = "relation"
-    VIEW = "osintview"
-    MONITORING_SOURCE = "monitoringsource"
-
-
-class ArangoDBConstant:
-    EVENT_RELATED_GRAPH = "event_related_graph"
-    EVENT_GRAPH = "event_graph"
-    VIEW_GRAPH = "osint_view_graph"
-
-
-class LLMConstant:
-    EMBEDDING = "embedding"
-
-
 class ConfigRegistry(Singleton):
     def init(self, root_path: str):
         self._configs: Dict[str, str] = {}
