@@ -1,36 +1,101 @@
-# Omni Python Library
+## Omni Python Library
 
-[![codecov](https://codecov.io/github/omnsight/omni-python-library/graph/badge.svg?token=WGI02I2208)](https://codecov.io/github/omnsight/omni-python-library)
+A Python library for interacting with the Omni platform's backend, providing data access layers for various services.
 
-This repository contains a Python library for interacting with the Omni platform. It provides a data access layer (DAL) for OSINT data, middleware for user authentication, and various utility functions.
+### 🚀 Features
 
-## Installation
+- CRUD operations for Monitoring Sources, OSINT Views, Events, Persons, and more.
+- Manages relationships between data entities, like connecting sources to views.
+- Built-in permission handling based on user roles.
+- Search and query capabilities for indexed data.
 
-To install the package, add the following dependency to your `pyproject.toml` file:
+### 🛠 Tech Stack
 
+- **Language:** Python 3.12+
+- **Database:** ArangoDB
+- **Caching:** Redis
+- **Package Management:** [uv](https://github.com/astral-sh/uv)
+- **Testing:** pytest
+- **Formatting:** black, isort
+
+## 📦 Getting Started
+
+### Prerequisites
+
+- [uv](https://github.com/astral-sh/uv)
+- Docker
+
+### Installation
+
+1. Clone the repo:
 ```bash
-dependencies = [
-    "omni-python-library @ git+https://github.com/omnsight/omni-python-library",
-]
+git clone https://github.com/your-repo/omni-python-library.git
+cd omni-python-library
 ```
 
-## Usage
+2. Install dependencies:
+```bash
+uv sync --extra dev
+```
 
-Here is a simple example of how to use the library:
+## ⚙️ Configuration
 
+Fill the `.env` file with your local or production credentials:
+```bash
+stage="local"
+
+# ArangoDB
+ARANGODB_HOST="http://localhost:8529"
+ARANGODB_USERNAME="root"
+ARANGODB_PASSWORD="password"
+ARANGODB_DB_NAME="test_osint_db"
+ARANGODB_EMBEDDING_DIMENSION="384"
+
+# Redis
+REDIS_HOST="localhost"
+REDIS_PORT="6379"
+REDIS_PASSWORD=""
+
+# Embedding Model
+EMBEDDING_AI_API_KEY=
+EMBEDDING_AI_API_BASE_URL=
+EMBEDDING_MODEL=
+```
+
+## 📖 Usage
+
+Here is an example of creating a new monitoring source:
 ```python
 from omni_python_library import init_omni_library
+from omni_python_library.dal.monitoring_source_data_access_layer import MonitoringSourceDataAccessLayer
+from omni_python_library.models import MonitoringSourceMainData, SourceType
+from omni_python_library.utils.config import UserRole
 
-def entry_point():
-    init_omni_library()
-```
+# Initialize the library
+init_omni_library()
 
-```python
-from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
+# Define the monitoring source data
+ms_data = MonitoringSourceMainData(
+    name="My News Source",
+    description="A source for news articles.",
+    type=SourceType.WEBSITE,
+    url="https://news.example.com",
+    reliability=85.0,
+)
 
-OsintDataAccessLayer().query(...)
+# Create the monitoring source
+ms_dal = MonitoringSourceDataAccessLayer()
+new_source = ms_dal.create_monitoring_source(
+    ms_data, owner="user_id_123", roles=[UserRole.ADMIN]
+)
+
+print(f"Created source with ID: {new_source.id}")
 ```
 
 ## Local Development
 
 Refer to [DEVELOPMENT.md](DEVELOPMENT.md) for local development setup.
+
+## 📄 License
+
+Distributed under the Apache-2.0 License. See [LICENSE](./LICENSE) for more information.
