@@ -23,7 +23,9 @@ class ViewDataMutator(ViewDataFetcher):
             for config in data.configs:
                 self._verify_entities_exist(config.entities)
 
-        updated = self._update_in_arango(id, data.model_dump(exclude_unset=True), owner=owner, roles=roles)
+        updated = self._update_in_arango(
+            id, data.model_dump(mode="json", by_alias=True, exclude_unset=True), owner=owner, roles=roles
+        )
         return OsintView(**updated)
 
     def add_view_config(self, view_id: str, config: ViewConfig, owner: str = None, roles: List[str] = []) -> OsintView:
@@ -53,7 +55,7 @@ class ViewDataMutator(ViewDataFetcher):
 
         bind_vars = {
             "key": key,
-            "config": config.model_dump(by_alias=True),
+            "config": config.model_dump(mode="json", by_alias=True, exclude_unset=True),
         }
 
         try:

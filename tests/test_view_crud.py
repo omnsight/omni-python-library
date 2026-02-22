@@ -74,10 +74,17 @@ class TestViewCRUD(unittest.TestCase):
         view_data = OsintViewMainData(name="Test View", description="Description", configs=[])
         view = ViewDataAccessLayer().create_view(view_data, owner="test_user", roles=[UserRole.ADMIN])
 
+        view_data = OsintViewMainData(description="Description Updated")
+        updated_view = ViewDataAccessLayer().update_view(view.id, view_data, owner="test_user", roles=[UserRole.ADMIN])
+        self.assertEqual(updated_view.description, "Description Updated")
+        self.assertEqual(len(updated_view.configs), 0)
+
         config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=[person.id])
-        updated_view = ViewDataAccessLayer().add_view_config(view.id, config, owner="test_user", roles=[UserRole.ADMIN])
-        self.assertEqual(len(updated_view.configs), 1)
-        self.assertEqual(updated_view.configs[0].entities[0], person.id)
+        updated_view2 = ViewDataAccessLayer().add_view_config(
+            view.id, config, owner="test_user", roles=[UserRole.ADMIN]
+        )
+        self.assertEqual(len(updated_view2.configs), 1)
+        self.assertEqual(updated_view2.configs[0].entities[0], person.id)
 
     def test_verify_entity_existence(self):
         # Create view first
