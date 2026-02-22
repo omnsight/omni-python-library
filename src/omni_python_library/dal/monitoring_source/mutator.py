@@ -19,7 +19,9 @@ class MonitoringSourceDataMutator(MonitoringSourceFetcher):
         self, id: str, data: MonitoringSourceMainData, owner: str, roles: List[str]
     ) -> MonitoringSource:
         logger.debug(f"Updating monitoring source {id} with data {data}")
-        updated = self._update_in_arango(id, data.model_dump(mode="json", by_alias=True, exclude_unset=True), owner=owner, roles=roles)
+        updated = self._update_in_arango(
+            id, data.model_dump(mode="json", by_alias=True, exclude_unset=True), owner=owner, roles=roles
+        )
         return MonitoringSource(**updated)
 
     def connect_monitoring_source_to_view(

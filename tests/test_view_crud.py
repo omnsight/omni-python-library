@@ -80,7 +80,9 @@ class TestViewCRUD(unittest.TestCase):
         self.assertEqual(len(updated_view.configs), 0)
 
         config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=[person.id])
-        updated_view2 = ViewDataAccessLayer().add_view_config(view.id, config, owner="test_user", roles=[UserRole.ADMIN])
+        updated_view2 = ViewDataAccessLayer().add_view_config(
+            view.id, config, owner="test_user", roles=[UserRole.ADMIN]
+        )
         self.assertEqual(len(updated_view2.configs), 1)
         self.assertEqual(updated_view2.configs[0].entities[0], person.id)
 

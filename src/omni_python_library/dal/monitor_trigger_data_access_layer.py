@@ -16,7 +16,10 @@ class MonitorTriggerDataAccessLayer:
     def create_monitor_trigger(self, trigger: MonitorTrigger):
         with RedisClient().monitoring_client.pipeline() as pipe:
             pipe.sadd(self.MONITOR_TRIGGERS_SET_KEY, trigger.user_id)
-            pipe.hset(self._get_trigger_key(trigger.user_id), mapping=trigger.model_dump(mode="json", by_alias=True, exclude_unset=True))
+            pipe.hset(
+                self._get_trigger_key(trigger.user_id),
+                mapping=trigger.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            )
             pipe.execute()
 
     def delete_monitor_trigger(self, user_id: str):
