@@ -28,7 +28,7 @@ class ViewConfig(BaseModel):
 class OsintViewMainData(BaseModel):
     name: Optional[str] = Field(default=None, description="Name of the view")
     description: Optional[str] = Field(default=None, description="Description of the view")
-    configs: Optional[List[ViewConfig]] = Field(default=None, description="List of view configurations")
+    configs: List[ViewConfig] = Field(default_factory=list, description="List of view configurations")
 
 
 class OsintView(OsintViewMainData, ArangoData, Permissive):
