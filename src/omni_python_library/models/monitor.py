@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -35,3 +35,14 @@ class MonitoringSourceMainData(BaseModel):
 
 class MonitoringSource(ArangoData, MonitoringSourceMainData):
     owner: str = Field(description="Identify the user the monitoring source belongs to")
+
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from MonitoringSourceMainData into a dictionary."""
+        return self.model_dump(
+            include=MonitoringSourceMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
