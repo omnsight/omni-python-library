@@ -140,6 +140,10 @@ class TestViewCRUD(unittest.TestCase):
         with self.assertRaises(InternalError):
             ViewDataAccessLayer().query_views("any", owner="test_user", limit=-1)
 
+    def test_view_get_entities_permission_denied(self):
+        with self.assertRaises(NotFoundError):
+            ViewDataAccessLayer().get_entities("bad_id", owner="test_user", roles=[UserRole.ADMIN])
+
 
 if __name__ == "__main__":
     unittest.main()
