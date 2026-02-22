@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -32,4 +32,13 @@ class OsintViewMainData(BaseModel):
 
 
 class OsintView(OsintViewMainData, ArangoData, Permissive):
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from OsintViewMainData into a dictionary."""
+        return self.model_dump(
+            include=OsintViewMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )

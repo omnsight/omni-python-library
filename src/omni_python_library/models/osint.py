@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,7 +30,16 @@ class Relation(ArangoData, Permissive, RelationMainData):
     Represents a relationship between two entities.
     """
 
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from RelationMainData into a dictionary."""
+        return self.model_dump(
+            include=RelationMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
 
 
 # Event
@@ -52,7 +61,16 @@ class Event(ArangoData, Permissive, EventMainData):
     Represents an event.
     """
 
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from EventMainData into a dictionary."""
+        return self.model_dump(
+            include=EventMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
 
 
 # Source
@@ -76,7 +94,16 @@ class Source(ArangoData, Permissive, SourceMainData):
     Represents a source of information.
     """
 
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from SourceMainData into a dictionary."""
+        return self.model_dump(
+            include=SourceMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
 
 
 # Person
@@ -96,7 +123,16 @@ class Person(ArangoData, Permissive, PersonMainData):
     Represents a person.
     """
 
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from PersonMainData into a dictionary."""
+        return self.model_dump(
+            include=PersonMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
 
 
 # Organization
@@ -115,7 +151,16 @@ class Organization(ArangoData, Permissive, OrganizationMainData):
     Represents an organization.
     """
 
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from OrganizationMainData into a dictionary."""
+        return self.model_dump(
+            include=OrganizationMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
 
 
 # Website
@@ -137,4 +182,13 @@ class Website(ArangoData, Permissive, WebsiteMainData):
     Represents a website.
     """
 
-    pass
+    def model_dump_main(
+        self, mode: Literal["json", "python"] = "python", exclude_unset: bool = False
+    ) -> Dict[str, Any]:
+        """Dumps the fields from WebsiteMainData into a dictionary."""
+        return self.model_dump(
+            include=WebsiteMainData.model_fields.keys(),
+            mode=mode,
+            by_alias=True,
+            exclude_unset=exclude_unset,
+        )
