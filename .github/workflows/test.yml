@@ -10,6 +10,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: 🛒 Check out repository
@@ -55,7 +57,7 @@ jobs:
           file: ./coverage.xml
 
       - name: 📝 Publish changes
-        if: github.event_name == 'pull_request' && github.base_ref != 'main'
+        if: github.event_name == 'pull_request' && github.base_ref != 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto [skip ci]: update dependencies and generated client"
