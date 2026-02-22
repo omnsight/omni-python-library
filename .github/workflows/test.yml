@@ -26,7 +26,10 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           pip install uv
+          uv lock --upgrade
           uv sync --extra dev
+          uv run black .
+          uv run isort .
 
       - name: 🧪 Run tests and generate coverage report
         env:
@@ -50,3 +53,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
+
+      - name: 📝 Publish changes
+        if: github.event_name == 'pull_request' && github.base_ref != 'main'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto [skip ci]: update dependencies and generated client"
