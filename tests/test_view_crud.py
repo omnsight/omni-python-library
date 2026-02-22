@@ -21,12 +21,7 @@ class TestViewCRUD(unittest.TestCase):
     def test_view_lifecycle(self):
         # Create a person to be used in view
         person_data = PersonMainData(name="Test Person", role="Tester", nationality="US")
-        # Ensure Person collection exists (init called in ArangoDBClient)
-        try:
-            person = OsintDataAccessLayer().create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
-        except Exception as e:
-            print(f"Failed to create person: {e}")
-            raise
+        person = OsintDataAccessLayer().create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
 
         # Create View
         config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=[person.id])
@@ -71,6 +66,20 @@ class TestViewCRUD(unittest.TestCase):
         # Delete View
         ViewDataAccessLayer().delete_view(view.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNone(ViewDataAccessLayer().get_view(view.id, owner="test_user", roles=[UserRole.ADMIN]))
+
+    def test_view_create_no_config(self):
+        person_data = PersonMainData(name="Test Person", role="Tester", nationality="US")
+        person = OsintDataAccessLayer().create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
+
+        view_data = OsintViewMainData(name="Test View", description="Description", configs=[])
+        view = ViewDataAccessLayer().create_view(view_data, owner="test_user", roles=[UserRole.ADMIN])
+
+        config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=[person.id])
+        updated_view = ViewDataAccessLayer().add_view_config(
+            view.id, config, owner="test_user", roles=[UserRole.ADMIN]
+        )
+        self.assertEqual(len(updated_view.configs), 1)
+        self.assertEqual(updated_view.configs[0].entities[0], person.id)
 
     def test_verify_entity_existence(self):
         # Create view first
