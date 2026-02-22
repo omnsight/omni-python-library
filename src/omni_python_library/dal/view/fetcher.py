@@ -5,6 +5,7 @@ from omni_python_library.dal.base import ArangoOperator
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models import Event, Organization, OsintView, Person, Relation, Source, Website
 from omni_python_library.utils.config import ArangoDBConstant
+from omni_python_library.utils.errors import NotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,10 @@ class ViewDataFetcher(ArangoOperator):
         self, view_id: str, owner: str, roles: List[str]
     ) -> List[Union[Relation, Event, Source, Person, Organization, Website]]:
         logger.debug(f"Querying entities connected to view: {view_id}")
+
+        view = self.get_view(view_id, owner, roles)
+        if not view:
+            raise NotFoundError(f"View {view_id} not found")
 
         query = f"""
             FOR v, e IN 1..1 OUTBOUND @view_id
