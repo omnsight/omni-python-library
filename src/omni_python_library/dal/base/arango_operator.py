@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Union
 
@@ -49,6 +50,8 @@ class ArangoOperator(Cacher):
         if not self._check_auth(owner, roles, [UserRole.ADMIN, UserRole.PRO]):
             raise PermissionDeniedError(f"Only admin and pro users can create documents. User: {owner}, Roles: {roles}")
 
+        data["created_at"] = int(datetime.now(timezone.utc).timestamp())
+        data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
         if embedding_fields:
             embedding_text = " ".join(str(data.get(f, "")) for f in embedding_fields)
             embedding = self.generate_embedding(embedding_text)
@@ -88,6 +91,7 @@ class ArangoOperator(Cacher):
                 f"Permission denied to update document {id}. User: {owner}, Roles: {roles}, Required: {required_roles}, Owner: {doc_owner}"
             )
 
+        data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
         if in_pending:
             self.set(id, data, db=PENDING_UPDATES)
             return {**doc, **data}

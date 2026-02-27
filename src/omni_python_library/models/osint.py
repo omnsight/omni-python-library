@@ -14,8 +14,6 @@ class RelationMainData(BaseModel):
     label: Optional[str] = Field(
         default=None, description="Label name of the relation (can be any language) to display"
     )
-    created_at: Optional[int] = Field(default=None, description="Creation timestamp")
-    updated_at: Optional[int] = Field(default=None, description="Update timestamp")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
 
     # Edges specific fields
@@ -51,7 +49,6 @@ class EventMainData(BaseModel):
         default=None, description="Brief description of the event. Keep it short and clear."
     )
     happened_at: Optional[int] = Field(default=None, description="Timestamp when the event happened")
-    updated_at: Optional[int] = Field(default=None, description="Update timestamp")
     tags: Optional[List[str]] = Field(default=None, description="Tags")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
 
@@ -83,8 +80,6 @@ class SourceMainData(BaseModel):
         default=None, description="Brief description of the source. Keep it short and clear."
     )
     reliability: Optional[int] = Field(default=None, description="Reliability score")
-    created_at: Optional[int] = Field(default=None, description="Creation timestamp")
-    updated_at: Optional[int] = Field(default=None, description="Update timestamp")
     tags: Optional[List[str]] = Field(default=None, description="Tags")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
 
@@ -111,8 +106,7 @@ class PersonMainData(BaseModel):
     role: Optional[str] = Field(default=None, description="Role")
     name: Optional[str] = Field(default=None, description="Name")
     nationality: Optional[str] = Field(default=None, description="Nationality")
-    birth_date: Optional[int] = Field(default=None, description="Birth date timestamp")
-    updated_at: Optional[int] = Field(default=None, description="Update timestamp")
+    birth_date: Optional[int] = Field(default=None, description="Person's birth date (timestamp)")
     tags: Optional[List[str]] = Field(default=None, description="Tags")
     aliases: Optional[List[str]] = Field(default=None, description="Aliases")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
@@ -139,9 +133,9 @@ class Person(ArangoData, Permissive, PersonMainData):
 class OrganizationMainData(BaseModel):
     type: Optional[str] = Field(default=None, description="Type of organization")
     name: Optional[str] = Field(default=None, description="Name of the organization")
-    founded_at: Optional[int] = Field(default=None, description="Founded timestamp")
-    discovered_at: Optional[int] = Field(default=None, description="Discovered timestamp")
-    last_visited: Optional[int] = Field(default=None, description="Last visited timestamp")
+    founded_at: Optional[int] = Field(default=None, description="When organization is founded (timestamp)")
+    discovered_at: Optional[int] = Field(default=None, description="When organization is discovered (timestamp)")
+    last_visited: Optional[int] = Field(default=None, description="When organization is last visited (timestamp)")
     tags: Optional[List[str]] = Field(default=None, description="Tags")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
 
@@ -170,9 +164,9 @@ class WebsiteMainData(BaseModel):
     description: Optional[str] = Field(
         default=None, description="Brief description of the website. Keep it short and clear."
     )
-    founded_at: Optional[int] = Field(default=None, description="Founded timestamp")
-    discovered_at: Optional[int] = Field(default=None, description="Discovered timestamp")
-    last_visited: Optional[int] = Field(default=None, description="Last visited timestamp")
+    founded_at: Optional[int] = Field(default=None, description="When website is founded (timestamp)")
+    discovered_at: Optional[int] = Field(default=None, description="When website is discovered (timestamp)")
+    last_visited: Optional[int] = Field(default=None, description="When website is last visited (timestamp)")
     tags: Optional[List[str]] = Field(default=None, description="Tags")
     attributes: Optional[Dict[str, Any]] = Field(default=None, description="Additional attributes")
 

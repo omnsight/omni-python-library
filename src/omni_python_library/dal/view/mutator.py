@@ -89,8 +89,6 @@ class ViewDataMutator(ViewDataFetcher):
             name="includes",
             from_id=view_id,
             to_id=entity_id,
-            created_at=int(time.time()),
-            updated_at=int(time.time()),
         )
 
         OsintDataAccessLayer().create_relation(relation_data, owner=owner, roles=roles)

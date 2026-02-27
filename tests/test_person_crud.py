@@ -19,7 +19,6 @@ class TestPersonCRUD(unittest.TestCase):
             role="Engineer",
             nationality="US",
             birth_date=100000,
-            updated_at=200000,
             read=[UserRole.ADMIN],
             write=[UserRole.ADMIN],
         )
