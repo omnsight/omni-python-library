@@ -1,5 +1,4 @@
 import logging
-import time
 from typing import List
 
 from omni_python_library.dal.monitoring_source.fetcher import MonitoringSourceFetcher
@@ -41,7 +40,6 @@ class MonitoringSourceDataMutator(MonitoringSourceFetcher):
             name="includes",
             from_id=view_id,
             to_id=monitoring_source_id,
-            created_at=int(time.time() * 1000),
         )
 
         OsintDataAccessLayer().create_relation(relation_data, owner=owner, roles=roles)

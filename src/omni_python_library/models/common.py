@@ -12,6 +12,9 @@ class ArangoData(BaseModel):
     key: Optional[str] = Field(default=None, alias="_key", description="ArangoDB document key")
     rev: Optional[str] = Field(default=None, alias="_rev", description="ArangoDB document revision")
 
+    created_at: Optional[int] = Field(default=None, description="Data creation timestamp")
+    updated_at: Optional[int] = Field(default=None, description="Data update timestamp")
+
     model_config = ConfigDict(populate_by_name=True)
 
 
