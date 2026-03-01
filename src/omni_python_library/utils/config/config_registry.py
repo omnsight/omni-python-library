@@ -13,8 +13,8 @@ class ConfigRegistry(Singleton):
         self.root_path = root_path
 
     def get(self, key: str) -> str:
-        stage = os.getenv("stage")
-        if stage == "local":
+        is_local = os.getenv("IS_LOCAL") == "true"
+        if is_local:
             val = os.getenv(key)
             if val is None:
                 logger.warning(f"Environment variable {key} not found in local stage")
