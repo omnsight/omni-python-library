@@ -5,7 +5,7 @@ from omni_python_library.dal.base import ArangoOperator
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.models import Event, Organization, OsintView, Person, Relation, Source, Website
 from omni_python_library.utils.config import ArangoDBConstant
-from omni_python_library.utils.errors import NotFoundError, PermissionDeniedError
+from omni_python_library.utils.errors import NotFoundError
 
 logger = logging.getLogger(__name__)
 
