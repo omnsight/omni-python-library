@@ -63,7 +63,8 @@ class ArangoDBClient(Singleton):
                         "params": {
                             "dimension": self._embedding_dimension,
                             "metric": "cosine",
-                            "nLists": 5,
+                            "nLists": 100,
+                            "defaultNProbe": 10,
                         },
                     }
                 )
