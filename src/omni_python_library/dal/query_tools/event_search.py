@@ -46,8 +46,7 @@ def search_events(
     vector_search = ""
     if text:
         vector_search = """
-            LET distance = VECTOR_DISTANCE(doc.embedding, @vector, "cosine")
-            SORT distance ASC
+            SORT APPROX_NEAR_COSINE(doc.embedding, @vector) DESC
         """
         bind_vars["vector"] = OsintDataAccessLayer().generate_embedding(text)
 
