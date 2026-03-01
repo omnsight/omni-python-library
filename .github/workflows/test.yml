@@ -35,7 +35,7 @@ jobs:
 
       - name: 🧪 Run tests and generate coverage report
         env:
-          stage: "local"
+          IS_LOCAL: "true"
           ARANGODB_HOST: "http://localhost:8529"
           ARANGODB_USERNAME: "root"
           ARANGODB_PASSWORD: "password"
