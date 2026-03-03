@@ -59,7 +59,7 @@ def init_omni_library() -> None:
 
     # Initialize OpenAI Client Wrapper
     OpenAIClient().init()
-    if ConfigRegistry().get("IS_LOCAL") == "true":
+    if ConfigRegistry().get("IS_LOCAL") != "true":
         OpenAIClient().add_client(
             model_use=LLMConstant.EMBEDDING,
             api_key=ConfigRegistry().get("EMBEDDING_AI_API_KEY"),
