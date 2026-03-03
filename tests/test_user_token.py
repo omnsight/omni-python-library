@@ -73,6 +73,11 @@ class TestUserTokenMiddleware:
         roles = await get_user_roles(user={"sub": "user123", "roles": "user,pro"})
         assert roles == []
 
+    async def test_get_user_roles_from_realm_access(self):
+        payload = {"sub": "user123", "realm_access": {"roles": ["user", "guest"]}}
+        roles = await get_user_roles(user=payload)
+        assert roles == ["user", "guest"]
+
     async def test_get_user_context(self):
         context = await get_user_context(user_id="user123", roles=["user", "pro"])
         assert context == {"user_id": "user123", "roles": ["user", "pro"]}
