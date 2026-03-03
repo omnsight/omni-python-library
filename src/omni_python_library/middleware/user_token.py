@@ -44,7 +44,10 @@ async def get_user_roles(user: dict = Depends(get_current_user)) -> List[str]:
     """
     Extracts the user roles from the token.
     """
-    roles = user.get("roles", [])
+    roles = user.get("roles")
+    if roles is None:
+        roles = user.get("realm_access", {}).get("roles", [])
+
     if not isinstance(roles, list):
         # Handle case where roles might be a comma-separated string or missing
         return []
