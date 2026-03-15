@@ -33,7 +33,11 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
 
         ArangoDBClient().init_graph(
             ArangoDBConstant.VIEW_GRAPH,
-            lambda from_coll, to_coll: ArangoDBConstant.VIEW_GRAPH if from_coll == EntityNameConstant.VIEW else None,
+            lambda from_coll, to_coll: (
+                ArangoDBConstant.VIEW_GRAPH
+                if from_coll in [EntityNameConstant.VIEW, EntityNameConstant.MONITORING_SOURCE]
+                else None
+            ),
         )
 
     def query_views(self, text: str, owner: str, limit: int = 100, offset: int = 0) -> List[OsintView]:

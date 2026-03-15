@@ -38,8 +38,8 @@ class MonitoringSourceDataMutator(MonitoringSourceFetcher):
 
         relation_data = RelationMainData(
             name="includes",
-            from_id=view_id,
-            to_id=monitoring_source_id,
+            from_id=monitoring_source_id,
+            to_id=view_id,
         )
 
         OsintDataAccessLayer().create_relation(relation_data, owner=owner, roles=roles)

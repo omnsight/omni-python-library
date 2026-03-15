@@ -45,9 +45,9 @@ class MonitoringSourceFetcher(ArangoOperator):
         logger.debug(f"Querying views connected to monitoring source: {monitoring_source_id}")
 
         query = f"""
-            FOR v, e IN 1..1 INBOUND @monitoring_source_id
-                FILTER v.owner == @owner
+            FOR v, e IN 1..1 OUTBOUND @monitoring_source_id
                 GRAPH '{ArangoDBConstant.VIEW_GRAPH}'
+                FILTER v.owner == @owner
                 RETURN v
         """
         bind_vars = {"owner": owner, "monitoring_source_id": monitoring_source_id}
