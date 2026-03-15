@@ -15,7 +15,7 @@ from omni_python_library.models.osint import (
     Website,
     WebsiteMainData,
 )
-from omni_python_library.models.view import OsintView, OsintViewMainData, ViewConfig, ViewMode, ViewUI
+from omni_python_library.models.view import OsintView, OsintViewMainData
 
 __all__ = [
     "ArangoData",
@@ -38,9 +38,6 @@ __all__ = [
     "WebsiteMainData",
     "OsintView",
     "OsintViewMainData",
-    "ViewConfig",
-    "ViewMode",
-    "ViewUI",
     "MonitorTrigger",
     "MonitorTriggerMainData",
 ]

@@ -5,7 +5,7 @@ from omni_python_library import init_omni_library
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models.osint import PersonMainData
-from omni_python_library.models.view import OsintViewMainData, ViewConfig, ViewMode, ViewUI
+from omni_python_library.models.view import OsintViewMainData
 from omni_python_library.utils.config import UserRole
 from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
@@ -24,18 +24,28 @@ class TestViewCRUD(unittest.TestCase):
         person = OsintDataAccessLayer().create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
 
         # Create View
-        config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=[person.id])
-        view_data = OsintViewMainData(name="Test View", description="Description", configs=[config])
+        analysis = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Hello world!",
+                    }
+                ],
+            }
+        ]
+        view_data = OsintViewMainData(name="Test View", description="Description", analysis=analysis)
         view = ViewDataAccessLayer().create_view(view_data, owner="test_user", roles=[UserRole.ADMIN])
 
         self.assertIsNotNone(view.id)
         self.assertEqual(view.name, "Test View")
+        self.assertEqual(len(view.analysis), len(analysis))
 
         # Get View
         fetched = ViewDataAccessLayer().get_view(view.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertEqual(fetched.name, "Test View")
-        self.assertEqual(len(fetched.configs), 1)
-        self.assertEqual(fetched.configs[0].entities[0], person.id)
+        self.assertEqual(len(fetched.analysis), len(analysis))
 
         # Update View (top level)
         updated_view = ViewDataAccessLayer().update_view(
@@ -43,17 +53,16 @@ class TestViewCRUD(unittest.TestCase):
         )
         self.assertEqual(updated_view.description, "Updated Description")
 
-        # Add View Config
-        new_config = ViewConfig(ui=ViewUI.SPARK_GRAPH, mode=ViewMode.TIMELINE, entities=[])
-        updated_view_2 = ViewDataAccessLayer().add_view_config(
-            view.id, new_config, owner="test_user", roles=[UserRole.ADMIN]
-        )
-        self.assertEqual(len(updated_view_2.configs), 2)
-
         # Connect Entity to View (to the second config, index 1)
         ViewDataAccessLayer().connect_entity_to_view(view.id, person.id, owner="test_user", roles=[UserRole.ADMIN])
         entities = ViewDataAccessLayer().get_entities(view.id, owner="test_user", roles=[UserRole.ADMIN])
         assert any(entity.id == person.id for entity in entities)
+
+        # Remove Entity from View
+        ViewDataAccessLayer().remove_entity_from_view(view.id, person.id, owner="test_user", roles=[UserRole.ADMIN])
+        entities = ViewDataAccessLayer().get_entities(view.id, owner="test_user", roles=[UserRole.ADMIN])
+        assert all(entity.id != person.id for entity in entities)
+        assert len(entities) == 0
 
         # Query by Text
         views = ViewDataAccessLayer().query_views("Test View", "test_user")
@@ -67,34 +76,37 @@ class TestViewCRUD(unittest.TestCase):
         ViewDataAccessLayer().delete_view(view.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNone(ViewDataAccessLayer().get_view(view.id, owner="test_user", roles=[UserRole.ADMIN]))
 
-    def test_view_create_no_config(self):
+    def test_add_analysis_to_view(self):
         person_data = PersonMainData(name="Test Person", role="Tester", nationality="US")
         person = OsintDataAccessLayer().create_person(person_data, owner="test_user", roles=[UserRole.ADMIN])
 
-        view_data = OsintViewMainData(name="Test View", description="Description", configs=[])
+        view_data = OsintViewMainData(name="Test View", description="Description", analysis=[])
         view = ViewDataAccessLayer().create_view(view_data, owner="test_user", roles=[UserRole.ADMIN])
 
         view_data = OsintViewMainData(description="Description Updated")
         updated_view = ViewDataAccessLayer().update_view(view.id, view_data, owner="test_user", roles=[UserRole.ADMIN])
         self.assertEqual(updated_view.description, "Description Updated")
-        self.assertEqual(len(updated_view.configs), 0)
+        self.assertEqual(len(updated_view.analysis), 0)
 
-        config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=[person.id])
-        updated_view2 = ViewDataAccessLayer().add_view_config(
-            view.id, config, owner="test_user", roles=[UserRole.ADMIN]
-        )
-        self.assertEqual(len(updated_view2.configs), 1)
-        self.assertEqual(updated_view2.configs[0].entities[0], person.id)
+        analysis = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Hello world!",
+                    }
+                ],
+            }
+        ]
+        view_data = OsintViewMainData(analysis=analysis)
+        updated_view2 = ViewDataAccessLayer().update_view(view.id, view_data, owner="test_user", roles=[UserRole.ADMIN])
+        self.assertEqual(len(updated_view2.analysis), 1)
 
-    def test_verify_entity_existence(self):
+    def test_update_view_with_invalid_entity(self):
         # Create view first
-        view_data = OsintViewMainData(name="Test View 2", description="Description", configs=[])
+        view_data = OsintViewMainData(name="Test View 2", description="Description", analysis=[])
         view = ViewDataAccessLayer().create_view(view_data, owner="test_user", roles=[UserRole.ADMIN])
-
-        bad_config = ViewConfig(ui=ViewUI.GEOVISION, mode=ViewMode.DEFAULT, entities=["person/non_existent_123"])
-
-        with self.assertRaises(NotFoundError):
-            ViewDataAccessLayer().add_view_config(view.id, bad_config, owner="test_user", roles=[UserRole.ADMIN])
 
         with self.assertRaises(NotFoundError):
             ViewDataAccessLayer().connect_entity_to_view(
