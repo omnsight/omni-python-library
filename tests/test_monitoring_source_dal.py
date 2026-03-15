@@ -4,7 +4,6 @@ import unittest
 from omni_python_library import init_omni_library
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.dal.monitoring_source_data_access_layer import MonitoringSourceDataAccessLayer
-from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.models import MonitoringSourceMainData, OsintViewMainData, SourceType
 from omni_python_library.utils.config import UserRole

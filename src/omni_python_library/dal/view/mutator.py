@@ -1,11 +1,10 @@
 import logging
-import time
-from typing import List, Union
+from typing import Any, Dict, List, Union
 
 from omni_python_library.clients import ArangoDBClient
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
 from omni_python_library.dal.view.fetcher import ViewDataFetcher
-from omni_python_library.models import OsintView, OsintViewMainData, Permissive, RelationMainData, ViewConfig
+from omni_python_library.models import OsintView, OsintViewMainData, Permissive, RelationMainData
 from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
@@ -19,18 +18,16 @@ class ViewDataMutator(ViewDataFetcher):
         self, id: str, data: Union[OsintViewMainData, Permissive], owner: str, roles: List[str]
     ) -> OsintView:
         logger.debug(f"Updating view {id} with data {data}")
-        if isinstance(data, OsintViewMainData) and data.configs:
-            for config in data.configs:
-                self._verify_entities_exist(config.entities)
 
         updated = self._update_in_arango(
             id, data.model_dump(mode="json", by_alias=True, exclude_unset=True), owner=owner, roles=roles
         )
         return OsintView(**updated)
 
-    def add_view_config(self, view_id: str, config: ViewConfig, owner: str = None, roles: List[str] = []) -> OsintView:
+    def add_view_config(
+        self, view_id: str, config: Dict[str, Any], owner: str = None, roles: List[str] = []
+    ) -> OsintView:
         logger.debug(f"Adding view config {config} to view {view_id}")
-        self._verify_entities_exist(config.entities)
 
         # Check permissions
         # Fetch document first (checking read permission implicitly)
@@ -55,7 +52,7 @@ class ViewDataMutator(ViewDataFetcher):
 
         bind_vars = {
             "key": key,
-            "config": config.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            "config": config,
         }
 
         try:
