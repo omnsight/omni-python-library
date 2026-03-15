@@ -89,19 +89,9 @@ class TestMonitoringSourceDAL(unittest.TestCase):
         )
 
         # Get Views for MS
-        query = f"""
-            FOR v IN 1..1 OUTBOUND @view_id GRAPH 'osint_view_graph'
-                FILTER v._id == @ms_id
-                FILTER v.owner == @owner
-                RETURN v
-        """
-        bind_vars = {"view_id": view.id, "ms_id": ms.id, "owner": self.user_id}
-        # Note: This is a direct query, so it bypasses DAL-level auth.
-        # The connection itself is what we are testing.
-        cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
-        results = list(cursor)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["_id"], ms.id)
+        views = MonitoringSourceDataAccessLayer().get_views(ms.id, owner=self.user_id)
+        self.assertEqual(len(views), 1)
+        self.assertEqual(views[0].id, view.id)
 
         # Clean up view (optional but good practice)
         ViewDataAccessLayer().delete_view(view.id, owner=self.user_id, roles=[UserRole.ADMIN])
