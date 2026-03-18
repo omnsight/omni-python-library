@@ -72,6 +72,10 @@ class TestViewCRUD(unittest.TestCase):
         views = ViewDataAccessLayer().query_views("Updated Description", "test_user")
         self.assertTrue(any(v.id == view.id for v in views))
 
+        # Query without text
+        views = ViewDataAccessLayer().query_views(None, "test_user")
+        self.assertTrue(any(v.id == view.id for v in views))
+
         # Delete View
         ViewDataAccessLayer().delete_view(view.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNone(ViewDataAccessLayer().get_view(view.id, owner="test_user", roles=[UserRole.ADMIN]))

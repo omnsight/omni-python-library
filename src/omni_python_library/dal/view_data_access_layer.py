@@ -40,19 +40,28 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
             ),
         )
 
-    def query_views(self, text: str, owner: str, limit: int = 100, offset: int = 0) -> List[OsintView]:
+    def query_views(self, text: str | None, owner: str, limit: int = 100, offset: int = 0) -> List[OsintView]:
         logger.debug(f"Querying views by text: {text}, owner: {owner}, limit: {limit}, offset: {offset}")
 
         # Use FILTER instead of SEARCH to avoid "collection or view not found" error with inverted index
+        text_filter = ""
+        if text:
+            text_filter = (
+                "FILTER (CONTAINS(LOWER(doc.name), LOWER(@text)) OR CONTAINS(LOWER(doc.description), LOWER(@text)))"
+            )
+
         query = f"""
             FOR doc IN {EntityNameConstant.VIEW}
-                FILTER (CONTAINS(LOWER(doc.name), LOWER(@text)) OR CONTAINS(LOWER(doc.description), LOWER(@text)))
+                {text_filter}
                 FILTER doc.owner == @owner
                 LIMIT @offset, @limit
                 RETURN doc
         """
 
-        bind_vars = {"text": text, "owner": owner, "limit": limit, "offset": offset}
+        bind_vars = {"owner": owner, "limit": limit, "offset": offset}
+        if text:
+            bind_vars["text"] = text
+
         try:
             cursor = ArangoDBClient().db.aql.execute(query, bind_vars=bind_vars)
             results = []
