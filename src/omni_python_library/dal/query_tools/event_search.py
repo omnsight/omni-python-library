@@ -63,10 +63,10 @@ def search_events(
 
     LET event_ids = events[*]._id
     LET relations = (
-        FOR event IN events
-            FOR v, e IN 1..1 ANY event GRAPH '{ArangoDBConstant.EVENT_GRAPH}'
-            FILTER e._from IN event_ids AND e._to IN event_ids
-            RETURN DISTINCT e
+        FOR id IN event_ids
+            FOR v, e IN 1..1 ANY id GRAPH '{ArangoDBConstant.EVENT_GRAPH}'
+                FILTER e._from IN event_ids AND e._to IN event_ids
+                RETURN DISTINCT e
     )
 
     FOR result IN APPEND(events, relations)

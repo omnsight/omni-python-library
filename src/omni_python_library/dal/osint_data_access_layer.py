@@ -31,6 +31,13 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
         )
         ArangoDBClient().init_graph(
             ArangoDBConstant.EVENT_RELATED_GRAPH,
+            [
+                EntityNameConstant.EVENT,
+                EntityNameConstant.PERSON,
+                EntityNameConstant.ORGANIZATION,
+                EntityNameConstant.WEBSITE,
+                EntityNameConstant.SOURCE,
+            ],
             lambda from_coll, to_coll: (
                 ArangoDBConstant.EVENT_RELATED_GRAPH
                 if from_coll == EntityNameConstant.EVENT and to_coll != EntityNameConstant.EVENT
@@ -39,6 +46,7 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
         )
         ArangoDBClient().init_graph(
             ArangoDBConstant.EVENT_GRAPH,
+            [EntityNameConstant.EVENT],
             lambda from_coll, to_coll: (
                 ArangoDBConstant.EVENT_GRAPH
                 if from_coll == EntityNameConstant.EVENT and to_coll == EntityNameConstant.EVENT
