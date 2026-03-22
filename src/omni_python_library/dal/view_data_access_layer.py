@@ -33,6 +33,15 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
 
         ArangoDBClient().init_graph(
             ArangoDBConstant.VIEW_GRAPH,
+            [
+                EntityNameConstant.VIEW,
+                EntityNameConstant.MONITORING_SOURCE,
+                EntityNameConstant.PERSON,
+                EntityNameConstant.ORGANIZATION,
+                EntityNameConstant.WEBSITE,
+                EntityNameConstant.SOURCE,
+                EntityNameConstant.EVENT,
+            ],
             lambda from_coll, to_coll: (
                 ArangoDBConstant.VIEW_GRAPH
                 if from_coll in [EntityNameConstant.VIEW, EntityNameConstant.MONITORING_SOURCE]

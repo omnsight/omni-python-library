@@ -76,9 +76,14 @@ class ArangoDBClient(Singleton):
         self._collections[col_name] = col
         return col
 
-    def init_graph(self, graph_name: str, callback: Callable[[str, str], Optional[str]]) -> None:
+    def init_graph(
+        self,
+        graph_name: str,
+        orphan_collections: List[str],
+        callback: Callable[[str, str], Optional[str]],
+    ) -> None:
         if not self._db.has_graph(graph_name):
-            self._db.create_graph(graph_name)
+            self._db.create_graph(graph_name, orphan_collections=orphan_collections)
         self._graph_callbacks.append(callback)
 
     def init_view(self, view_name: str, properties: Dict) -> None:
