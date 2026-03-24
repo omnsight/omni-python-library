@@ -31,10 +31,13 @@ class ViewDataFetcher(ArangoOperator):
             raise NotFoundError(f"View {view_id} not found")
 
         query = f"""
-            FOR v, e IN 1..1 OUTBOUND @view_id
-                GRAPH '{ArangoDBConstant.VIEW_GRAPH}'
-                FILTER (v.owner == @owner OR LENGTH(INTERSECTION(v.read, @roles)) > 0)
-                RETURN v
+            LET nodes = (
+                FOR v, e IN 1..1 OUTBOUND @view_id
+                    GRAPH '{ArangoDBConstant.VIEW_GRAPH}'
+                    FILTER (v.owner == @owner OR LENGTH(INTERSECTION(v.read, @roles)) > 0)
+                    RETURN v
+            )
+            RETURN {{ 'nodes': nodes, 'edges': [] }}
         """
         bind_vars = {"view_id": view_id, "owner": owner, "roles": roles}
         return OsintDataAccessLayer().query(query, bind_vars=bind_vars)
