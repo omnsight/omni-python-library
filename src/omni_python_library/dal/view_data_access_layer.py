@@ -48,6 +48,11 @@ class ViewDataAccessLayer(ViewDataFactory, ViewDataMutator, ViewDataDestroyer):
                 else None
             ),
         )
+        ArangoDBClient().get_edge_collection(
+            "contains",
+            EntityNameConstant.VIEW,
+            EntityNameConstant.EVENT,
+        )
 
     def query_views(self, text: str | None, owner: str, limit: int = 100, offset: int = 0) -> List[OsintView]:
         logger.debug(f"Querying views by text: {text}, owner: {owner}, limit: {limit}, offset: {offset}")
