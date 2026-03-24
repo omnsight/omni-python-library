@@ -105,6 +105,7 @@ class ArangoDBClient(Singleton):
 
     def get_collection(self, name: str) -> StandardCollection:
         col_name = name.lower()
+        logger.debug(f"Getting node collection: {col_name}")
         if col_name in self._collections:
             return self._collections[col_name]
 
@@ -117,6 +118,7 @@ class ArangoDBClient(Singleton):
 
     def get_edge_collection(self, name: str, from_coll: str, to_coll: str) -> StandardCollection:
         col_name = f"{from_coll}_{name}_{to_coll}"
+        logger.debug(f"Getting edge collection: {col_name}")
         if col_name in self._collections:
             return self._collections[col_name]
 
@@ -133,6 +135,7 @@ class ArangoDBClient(Singleton):
     def parse_id(self, id: str) -> Tuple[str, str]:
         col_name = id.split("/")[0]
         key = id.split("/")[-1]
+        logger.debug(f"Parsing ID: {id} -> Collection: {col_name}, Key: {key}")
         return col_name, key
 
     def _ensure_in_graph(self, graph_name: str, edge_collection: str, from_coll: str, to_coll: str) -> None:
