@@ -34,8 +34,7 @@ def search_entity_neighborhood(
     )
     LET vertices = (FOR t IN traversal RETURN t.v)
     LET edges = (FOR t IN traversal RETURN t.e)
-    FOR doc IN UNION(vertices, edges)
-        RETURN doc
+    RETURN {{ nodes: vertices, edges: edges }}
     """
 
     return OsintDataAccessLayer().query(query, bind_vars=bind_vars, in_pending=in_pending)

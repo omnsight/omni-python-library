@@ -89,12 +89,15 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
             cursor = ArangoDBClient().db.aql.execute(query_str, bind_vars=bind_vars)
             results = []
 
-            for doc in cursor:
-                pending = self.get(doc["_id"], db=PENDING_UPDATES) or {} if in_pending else {}
+            try:
+                query_result = cursor.next()
+            except StopIteration:
+                logger.debug("Query returned 0 results")
+                return []
 
-                if "_from" in doc and "_to" in doc:
-                    results.append(Relation(**{**doc, **pending}))
-                else:
+            if "nodes" in query_result:
+                for doc in query_result["nodes"]:
+                    pending = self.get(doc["_id"], db=PENDING_UPDATES) or {} if in_pending else {}
                     col_name, _ = ArangoDBClient().parse_id(doc["_id"])
                     if col_name == EntityNameConstant.PERSON:
                         results.append(Person(**{**doc, **pending}))
@@ -106,6 +109,11 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
                         results.append(Source(**{**doc, **pending}))
                     elif col_name == EntityNameConstant.EVENT:
                         results.append(Event(**{**doc, **pending}))
+
+            if "edges" in query_result:
+                for doc in query_result["edges"]:
+                    pending = self.get(doc["_id"], db=PENDING_UPDATES) or {} if in_pending else {}
+                    results.append(Relation(**{**doc, **pending}))
 
             logger.debug(f"Query returned {len(results)} results")
             return results

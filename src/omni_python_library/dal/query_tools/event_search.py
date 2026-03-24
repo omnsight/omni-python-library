@@ -69,8 +69,7 @@ def search_events(
                 RETURN DISTINCT e
     )
 
-    FOR result IN APPEND(events, relations)
-        RETURN result
+    RETURN {{ nodes: events, edges: relations }}
     """
 
     return OsintDataAccessLayer().query(query, bind_vars=bind_vars, in_pending=in_pending)
