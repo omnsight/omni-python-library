@@ -149,7 +149,6 @@ class TestQueryTools(unittest.TestCase):
         event_ids = {r.id for r in results if r.id.startswith("event/")}
         self.assertEqual({e1.id, e2.id}, event_ids)
 
-
     def test_search_entity_neighborhood(self):
         # Create Person
         p_data = PersonMainData(name="Alice", role="Analyst")
