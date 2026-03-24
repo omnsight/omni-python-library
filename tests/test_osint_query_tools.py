@@ -134,6 +134,21 @@ class TestQueryTools(unittest.TestCase):
         self.assertEqual({e1.id, e2.id, e5.id}, event_ids)
         self.assertEqual({r1.id}, relation_ids)
 
+    def test_search_events_with_two_events(self):
+        # Create two Events
+        e1_data = EventMainData(title="Event 1", description="First event", happened_at=1000)
+        e1 = OsintDataAccessLayer().create_event(e1_data, owner="test", roles=[UserRole.ADMIN])
+
+        e2_data = EventMainData(title="Event 2", description="Second event", happened_at=2000)
+        e2 = OsintDataAccessLayer().create_event(e2_data, owner="test", roles=[UserRole.ADMIN])
+
+        # Search events
+        results = search_events(owner="test", roles=[UserRole.ADMIN])
+
+        # Verify results
+        event_ids = {r.id for r in results if r.id.startswith("event/")}
+        self.assertEqual({e1.id, e2.id}, event_ids)
+
     def test_search_entity_neighborhood(self):
         # Create Person
         p_data = PersonMainData(name="Alice", role="Analyst")
