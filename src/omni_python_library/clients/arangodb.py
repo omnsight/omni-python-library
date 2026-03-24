@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, Dict, List, Optional, Tuple
 
 from arango import ArangoClient
@@ -5,6 +6,8 @@ from arango.collection import StandardCollection
 
 from omni_python_library.utils import Singleton
 from omni_python_library.utils.errors import NotFoundError
+
+logger = logging.getLogger(__name__)
 
 
 class ArangoDBClient(Singleton):
@@ -105,6 +108,7 @@ class ArangoDBClient(Singleton):
         if col_name in self._collections:
             return self._collections[col_name]
 
+        logger.info(f"Initializing collection '{col_name}'")
         if self._db.has_collection(col_name):
             self._collections[col_name] = self._db.collection(col_name)
             return self._collections[col_name]
@@ -116,6 +120,7 @@ class ArangoDBClient(Singleton):
         if col_name in self._collections:
             return self._collections[col_name]
 
+        logger.info(f"Initializing collection '{col_name}'")
         col = self.init_collection(col_name, edge=True)
 
         for callback in self._graph_callbacks:
