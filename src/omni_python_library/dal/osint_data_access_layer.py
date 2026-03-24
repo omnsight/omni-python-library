@@ -44,6 +44,11 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
                 else None
             ),
         )
+        ArangoDBClient().get_edge_collection(
+            "started_by",
+            EntityNameConstant.EVENT,
+            EntityNameConstant.PERSON,
+        )
         ArangoDBClient().init_graph(
             ArangoDBConstant.EVENT_GRAPH,
             [EntityNameConstant.EVENT],
@@ -52,6 +57,11 @@ class OsintDataAccessLayer(OsintDataFactory, OsintDataMutator, OsintDataDestroye
                 if from_coll == EntityNameConstant.EVENT and to_coll == EntityNameConstant.EVENT
                 else None
             ),
+        )
+        ArangoDBClient().get_edge_collection(
+            "related_to",
+            EntityNameConstant.EVENT,
+            EntityNameConstant.EVENT,
         )
 
     def query(
