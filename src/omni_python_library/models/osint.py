@@ -103,6 +103,7 @@ class Source(ArangoData, Permissive, SourceMainData):
 
 # Person
 class PersonMainData(BaseModel):
+    type: Optional[str] = Field(default=None, description="Role type of person")
     role: Optional[str] = Field(default=None, description="Role")
     name: Optional[str] = Field(default=None, description="Name")
     nationality: Optional[str] = Field(default=None, description="Nationality")
@@ -159,6 +160,7 @@ class Organization(ArangoData, Permissive, OrganizationMainData):
 
 # Website
 class WebsiteMainData(BaseModel):
+    type: Optional[str] = Field(default=None, description="Type of website")
     url: Optional[str] = Field(default=None, description="URL")
     title: Optional[str] = Field(default=None, description="Title of the website. Keep it short and clear.")
     description: Optional[str] = Field(
