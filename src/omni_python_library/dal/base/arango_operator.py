@@ -52,6 +52,8 @@ class ArangoOperator(Cacher):
 
         data["created_at"] = int(datetime.now(timezone.utc).timestamp())
         data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
+        data["read"] = [UserRole.ADMIN]
+        data["write"] = [UserRole.ADMIN]
         if embedding_fields:
             embedding_text = " ".join(str(data.get(f, "")) for f in embedding_fields)
             embedding = self.generate_embedding(embedding_text)
@@ -92,6 +94,8 @@ class ArangoOperator(Cacher):
             )
 
         data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
+        data["read"] = [UserRole.ADMIN] + doc.get("read", [])
+        data["write"] = [UserRole.ADMIN] + doc.get("write", [])
         if in_pending:
             self.set(id, data, db=PENDING_UPDATES)
             return {**doc, **data}
