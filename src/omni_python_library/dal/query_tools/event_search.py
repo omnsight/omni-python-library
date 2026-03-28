@@ -28,7 +28,7 @@ def search_events(
     :return: A list of Event and Relation objects.
     """
     bind_vars = {"limit": limit, "offset": offset, "owner": owner, "roles": roles}
-    filters = ["FILTER (doc.owner == @owner OR LENGTH(INTERSECTION(doc.read, @roles)) > 0)"]
+    filters = ["FILTER doc.owner == @owner OR (FOR r IN @roles FILTER r IN doc.read LIMIT 1 RETURN true)[0]"]
 
     if country_code:
         filters.append("FILTER doc.location.country_code == @country_code")

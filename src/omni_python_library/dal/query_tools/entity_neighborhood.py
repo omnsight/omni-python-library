@@ -28,7 +28,7 @@ def search_entity_neighborhood(
     query = f"""
     LET traversal = (
         FOR v, e IN 1..1 ANY @entity_id GRAPH '{ArangoDBConstant.EVENT_RELATED_GRAPH}'
-            FILTER (v.owner == @owner OR LENGTH(INTERSECTION(v.read, @roles)) > 0)
+            FILTER v.owner == @owner OR (FOR r IN @roles FILTER r IN v.read LIMIT 1 RETURN true)[0]
             LIMIT @offset, @limit
             RETURN {{ v: v, e: e }}
     )
