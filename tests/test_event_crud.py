@@ -2,7 +2,7 @@ import unittest
 
 from omni_python_library import init_omni_library
 from omni_python_library.dal.osint_data_access_layer import OsintDataAccessLayer
-from omni_python_library.models.osint import EventMainData
+from omni_python_library.models.osint import EventMainData, Permissive
 from omni_python_library.utils.config import UserRole
 from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
@@ -48,6 +48,38 @@ class TestEventCRUD(unittest.TestCase):
         # Verify Delete
         fetched_deleted = OsintDataAccessLayer().get_event(created.id, owner="test_user", roles=[UserRole.ADMIN])
         self.assertIsNone(fetched_deleted)
+
+    def test_event_update_with_permissive_roles(self):
+        # Create an event with initial read permissions
+        event_data = EventMainData(
+            title="Permissive Event",
+            type="Test",
+            happened_at=1725148800,
+            write=[UserRole.ADMIN],
+        )
+        created = OsintDataAccessLayer().create_event(event_data, owner="test_user", roles=[UserRole.ADMIN])
+        self.assertIsNotNone(created)
+        # The create_event method adds ADMIN to read list
+        self.assertEqual(set(created.read), {UserRole.ADMIN})
+
+        # Update the event and add a permissive role
+        OsintDataAccessLayer().update_event(
+            created.id,
+            Permissive(read=[UserRole.GUEST, UserRole.USER]),
+            owner="test_user",
+            roles=[UserRole.ADMIN],
+        )
+
+        # Read the event again to verify permissions
+        fetched_updated = OsintDataAccessLayer().get_event(created.id, owner="test_user", roles=[UserRole.ADMIN])
+        self.assertIsNotNone(fetched_updated)
+
+        # Verify that the read permissions include the original, the permissive, and the admin role
+        expected_read_roles = {UserRole.ADMIN, UserRole.USER, UserRole.GUEST}
+        self.assertEqual(set(fetched_updated.read), expected_read_roles)
+
+        # Clean up
+        OsintDataAccessLayer().delete_entity(created.id, owner="test_user", roles=[UserRole.ADMIN])
 
     def test_event_crud_with_pending_creation(self):
         # Create with in_pending=True
