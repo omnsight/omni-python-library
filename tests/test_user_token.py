@@ -32,23 +32,22 @@ class TestUserTokenMiddleware:
             mock_decode.assert_called_once_with(SAMPLE_TOKEN, options={"verify_signature": False})
 
     async def test_get_current_user_no_header(self):
-        with pytest.raises(HTTPException, match="Authorization header missing") as e:
-            await get_current_user(None)
-        assert e.value.status_code == 401
+        user = await get_current_user(None)
+        assert user is None
 
     async def test_get_current_user_invalid_scheme(self):
-        with pytest.raises(HTTPException, match="Invalid authentication scheme") as e:
+        with pytest.raises(HTTPException, match="Invalid authentication") as e:
             await get_current_user(f"Basic {SAMPLE_TOKEN}")
         assert e.value.status_code == 401
 
     async def test_get_current_user_malformed_header(self):
-        with pytest.raises(HTTPException, match="Invalid authentication scheme") as e:
+        with pytest.raises(HTTPException, match="Invalid authentication") as e:
             await get_current_user("BearerTokenWithoutSpace")
         assert e.value.status_code == 401
 
     async def test_get_current_user_decode_error(self):
         with patch("jwt.decode", side_effect=Exception("decode error")):
-            with pytest.raises(HTTPException, match="Token parsing error: decode error") as e:
+            with pytest.raises(HTTPException, match="Invalid authentication") as e:
                 await get_current_user(f"Bearer {SAMPLE_TOKEN}")
             assert e.value.status_code == 401
 
@@ -57,9 +56,8 @@ class TestUserTokenMiddleware:
         assert owner == "user123"
 
     async def test_get_owner_from_token_missing_sub(self):
-        with pytest.raises(HTTPException, match="Token missing 'sub' claim") as e:
-            await get_owner_from_token(user={"roles": ["user"]})
-        assert e.value.status_code == 401
+        owner = await get_owner_from_token(user={"roles": ["user"]})
+        assert owner == ""
 
     async def test_get_user_roles_success(self):
         roles = await get_user_roles(user=SAMPLE_PAYLOAD)
@@ -67,11 +65,12 @@ class TestUserTokenMiddleware:
 
     async def test_get_user_roles_missing(self):
         roles = await get_user_roles(user={"sub": "user123"})
-        assert roles == []
+        assert roles == ["guest"]
 
     async def test_get_user_roles_not_a_list(self):
-        roles = await get_user_roles(user={"sub": "user123", "roles": "user,pro"})
-        assert roles == []
+        with pytest.raises(HTTPException, match="Invalid authentication") as e:
+            await get_user_roles(user={"sub": "user123", "roles": "user,pro"})
+        assert e.value.status_code == 401
 
     async def test_get_user_roles_from_realm_access(self):
         payload = {"sub": "user123", "realm_access": {"roles": ["user", "guest"]}}

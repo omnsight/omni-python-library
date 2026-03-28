@@ -4,60 +4,53 @@ import jwt
 from fastapi import Depends, Header, HTTPException
 
 
-async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
-    """
-    Extracts and parses the JWT token from the Authorization header.
-    Assumes the token follows Aliyun IDaaS format.
-    """
+async def get_current_user(authorization: Optional[str] = Header(None)) -> dict | None:
     if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header missing")
+        return None
 
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-
-    token = parts[1]
+        raise HTTPException(status_code=401, detail="Invalid authentication")
 
     try:
-        # Decode the token without verification (as we don't have the public key configured yet)
-        # In a production environment, you should configure the public key and verify the signature.
-        payload = jwt.decode(token, options={"verify_signature": False})
-        return payload
-    except jwt.DecodeError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token parsing error: {str(e)}")
+        return jwt.decode(parts[1], options={"verify_signature": False})
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid authentication")
 
 
-async def get_owner_from_token(user: dict = Depends(get_current_user)) -> str:
+async def get_owner_from_token(user: dict | None = Depends(get_current_user)) -> str:
     """
     Extracts the owner ID from the user token.
     Aliyun IDaaS uses 'sub' as the unique identifier for the user.
     """
+    if user is None:
+        return ""
     owner = user.get("sub")
-    if not owner:
-        raise HTTPException(status_code=401, detail="Token missing 'sub' claim")
+    if not owner or not isinstance(owner, str):
+        return ""
     return owner
 
 
-async def get_user_roles(user: dict = Depends(get_current_user)) -> List[str]:
+async def get_user_roles(user: dict | None = Depends(get_current_user)) -> List[str]:
     """
     Extracts the user roles from the token.
     """
+    if user is None:
+        return ["guest"]
+
     roles = user.get("roles")
     if roles is None:
-        roles = user.get("realm_access", {}).get("roles", [])
+        roles = user.get("realm_access", {}).get("roles", ["guest"])
 
     if not isinstance(roles, list):
-        # Handle case where roles might be a comma-separated string or missing
-        return []
+        raise HTTPException(status_code=401, detail="Invalid authentication")
     return roles
 
 
 async def get_user_context(
     user_id: str = Depends(get_owner_from_token),
     roles: List[str] = Depends(get_user_roles),
-) -> Dict:
+) -> dict:
     return {"user_id": user_id, "roles": roles}
 
 
@@ -67,5 +60,5 @@ async def validate_create_permission(
     """
     Validates that the user has 'pro' or 'admin' role.
     """
-    if not any(role in roles for role in ["pro", "admin"]):
+    if not any(role in roles for role in ["pro", "paid", "admin"]):
         raise HTTPException(status_code=403, detail="Insufficient permissions to create resources")
