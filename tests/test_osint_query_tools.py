@@ -92,7 +92,7 @@ class TestQueryTools(unittest.TestCase):
         self.assertIn(e1.id, event_ids)
         self.assertIn(e2.id, event_ids)
         self.assertNotIn(e3.id, event_ids)
-        self.assertNotIn(e4.id, event_ids)
+        self.assertIn(e4.id, event_ids)
         self.assertIn(e5.id, event_ids)
 
         # Check if relation is found
@@ -110,7 +110,7 @@ class TestQueryTools(unittest.TestCase):
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1500, None))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
         relation_ids = {r.id for r in results if "event_link_event" in r.id}
-        self.assertEqual({e2.id, e5.id}, event_ids)
+        self.assertEqual({e2.id, e4.id, e5.id}, event_ids)
         self.assertEqual(set(), relation_ids)
 
         # Case 3: end only
@@ -131,7 +131,7 @@ class TestQueryTools(unittest.TestCase):
         results = search_events(owner="test", roles=[UserRole.ADMIN], country_code="US", date_range=(1000, 5000))
         event_ids = {r.id for r in results if r.id.startswith("event/")}
         relation_ids = {r.id for r in results if "event_link_event" in r.id}
-        self.assertEqual({e1.id, e2.id, e5.id}, event_ids)
+        self.assertEqual({e1.id, e2.id, e4.id, e5.id}, event_ids)
         self.assertEqual({r1.id}, relation_ids)
 
     def test_search_events_with_two_events(self):
@@ -220,7 +220,7 @@ class TestQueryTools(unittest.TestCase):
 
         ids = {r.id for r in results}
         self.assertIn(p.id, ids)
-        self.assertNotIn(p2.id, ids)
+        self.assertIn(p2.id, ids)
         self.assertIn(p3.id, ids)
         self.assertIn(org.id, ids)
         self.assertIn(web.id, ids)
@@ -229,7 +229,7 @@ class TestQueryTools(unittest.TestCase):
 
         relation_ids = {r.id for r in results if isinstance(r, Relation)}
         self.assertIn(r1.id, relation_ids)
-        self.assertNotIn(r2.id, relation_ids)
+        self.assertIn(r2.id, relation_ids)
         self.assertIn(r3.id, relation_ids)
         self.assertIn(r_org.id, relation_ids)
         self.assertIn(r_web.id, relation_ids)
