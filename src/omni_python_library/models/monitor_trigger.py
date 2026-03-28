@@ -6,7 +6,7 @@ class MonitorTriggerMainData(BaseModel):
     Model for monitor trigger.
     """
 
-    language: str = Field(description="The language that workflow generates data in by the trigger")
+    language: str = Field(max_length=10, description="The language that workflow generates data in by the trigger")
 
 
 class MonitorTrigger(MonitorTriggerMainData):
@@ -14,4 +14,4 @@ class MonitorTrigger(MonitorTriggerMainData):
     Model for monitor trigger.
     """
 
-    user_id: str = Field(description="ID of user who created the trigger")
+    user_id: str = Field(max_length=100, description="ID of user who created the trigger")

@@ -6,9 +6,11 @@ from omni_python_library.models.common import ArangoData, Permissive
 
 
 class OsintViewMainData(BaseModel):
-    name: Optional[str] = Field(default=None, description="Name of the view")
-    description: Optional[str] = Field(default=None, description="Description of the view")
-    analysis: Optional[List[Dict[str, Any]]] = Field(default=None, description="Json based analysis report doc")
+    name: Optional[str] = Field(default=None, max_length=100, description="Name of the view")
+    description: Optional[str] = Field(default=None, max_length=200, description="Description of the view")
+    analysis: Optional[List[Dict[str, Any]]] = Field(
+        default=None, max_length=5000, description="Json based analysis report doc"
+    )
 
 
 class OsintView(OsintViewMainData, ArangoData, Permissive):

@@ -32,6 +32,7 @@ class ArangoOperator(Cacher):
                 f"Permission denied to read document {id}. User: {owner}, Roles: {roles}, Required: {required_roles}, Owner: {doc_owner}"
             )
 
+        logger.debug(f"User: {owner}, Roles: {roles} is reading document {id} with data: {doc}")
         pending = self.get(id, db=PENDING_UPDATES)
         if pending and in_pending:
             return {**doc, **pending}
@@ -50,6 +51,7 @@ class ArangoOperator(Cacher):
         if not self._check_auth(owner, roles, [UserRole.ADMIN, UserRole.PRO]):
             raise PermissionDeniedError(f"Only admin and pro users can create documents. User: {owner}, Roles: {roles}")
 
+        logger.debug(f"User: {owner}, Roles: {roles} is creating document with data: {data}")
         data["created_at"] = int(datetime.now(timezone.utc).timestamp())
         data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
         data["read"] = [UserRole.ADMIN]
@@ -93,9 +95,10 @@ class ArangoOperator(Cacher):
                 f"Permission denied to update document {id}. User: {owner}, Roles: {roles}, Required: {required_roles}, Owner: {doc_owner}"
             )
 
+        logger.debug(f"User: {owner}, Roles: {roles} is updating document {id} with data: {data}")
         data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
-        data["read"] = [UserRole.ADMIN] + doc.get("read", [])
-        data["write"] = [UserRole.ADMIN] + doc.get("write", [])
+        data["read"] = list(set([UserRole.ADMIN] + doc.get("read", []) + data.get("read", [])))
+        data["write"] = list(set([UserRole.ADMIN] + doc.get("write", []) + data.get("write", [])))
         if in_pending:
             self.set(id, data, db=PENDING_UPDATES)
             return {**doc, **data}
@@ -144,6 +147,7 @@ class ArangoOperator(Cacher):
         if not self._check_auth(owner, roles, [], doc_owner):
             raise PermissionDeniedError(f"Permission denied to delete document {id}. User: {owner}, Owner: {doc_owner}")
 
+        logger.debug(f"User: {owner}, Roles: {roles} is deleting document {id} with data: {doc}")
         try:
             col_name, key = ArangoDBClient().parse_id(id)
             collection = ArangoDBClient().get_collection(col_name)
