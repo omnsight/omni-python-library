@@ -18,7 +18,9 @@ class MonitoringSourceMainData(BaseModel):
         default=None, max_length=200, description="Describe what kind of information the source focuses on"
     )
     type: Optional[SourceType] = Field(
-        default=None, max_length=30, description="Type of the monitoring source such as 'website', 'twitter', 'telegram'"
+        default=None,
+        max_length=30,
+        description="Type of the monitoring source such as 'website', 'twitter', 'telegram'",
     )
     url: Optional[str] = Field(default=None, max_length=200, description="URL of the monitoring source")
     reliability: Optional[float] = Field(

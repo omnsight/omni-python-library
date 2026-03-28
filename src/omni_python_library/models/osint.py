@@ -44,7 +44,9 @@ class Relation(ArangoData, Permissive, RelationMainData):
 class EventMainData(BaseModel):
     type: Optional[str] = Field(default=None, max_length=100, description="Type of event")
     location: Optional[LocationData] = Field(default=None, description="Location of the event")
-    title: Optional[str] = Field(default=None, max_length=100, description="Title of the event. Keep it short and clear.")
+    title: Optional[str] = Field(
+        default=None, max_length=100, description="Title of the event. Keep it short and clear."
+    )
     description: Optional[str] = Field(
         default=None, max_length=1000, description="Brief description of the event. Keep it short and clear."
     )
@@ -75,7 +77,9 @@ class SourceMainData(BaseModel):
     type: Optional[str] = Field(default=None, max_length=100, description="Type of source")
     url: Optional[str] = Field(default=None, max_length=200, description="URL")
     name: Optional[str] = Field(default=None, max_length=100, description="Name of the source")
-    title: Optional[str] = Field(default=None, max_length=100, description="Title of the source. Keep it short and clear.")
+    title: Optional[str] = Field(
+        default=None, max_length=100, description="Title of the source. Keep it short and clear."
+    )
     description: Optional[str] = Field(
         default=None, max_length=1000, description="Brief description of the source. Keep it short and clear."
     )
@@ -162,7 +166,9 @@ class Organization(ArangoData, Permissive, OrganizationMainData):
 class WebsiteMainData(BaseModel):
     type: Optional[str] = Field(default=None, max_length=100, description="Type of website")
     url: Optional[str] = Field(default=None, max_length=200, description="URL")
-    title: Optional[str] = Field(default=None, max_length=100, description="Title of the website. Keep it short and clear.")
+    title: Optional[str] = Field(
+        default=None, max_length=100, description="Title of the website. Keep it short and clear."
+    )
     description: Optional[str] = Field(
         default=None, max_length=1000, description="Brief description of the website. Keep it short and clear."
     )
