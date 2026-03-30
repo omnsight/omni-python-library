@@ -1,6 +1,7 @@
-import jwt
 import json
 from typing import List, Optional
+
+import jwt
 from fastapi import Depends, Header, HTTPException
 
 
