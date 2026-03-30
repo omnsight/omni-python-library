@@ -41,6 +41,7 @@ jobs:
           ARANGODB_PASSWORD: "password"
           ARANGODB_DB_NAME: "test_osint_db"
           ARANGODB_EMBEDDING_DIMENSION: "1536"
+          EMBEDDING_UPDATE_DAYS: "7"
           REDIS_HOST: "localhost"
           REDIS_PORT: "6379"
           REDIS_PASSWORD: ""
