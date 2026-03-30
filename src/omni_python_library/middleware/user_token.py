@@ -43,7 +43,7 @@ async def get_user_roles(user: dict | None = Depends(get_current_user)) -> List[
         roles = user.get("realm_access", {}).get("roles", ["guest"])
 
     if isinstance(roles, str):
-        roles = json.loads(roles)
+        roles = roles.split(",")
 
     if not isinstance(roles, list):
         raise HTTPException(status_code=401, detail="Invalid authentication")
