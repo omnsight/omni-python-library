@@ -67,10 +67,9 @@ class TestUserTokenMiddleware:
         roles = await get_user_roles(user={"sub": "user123"})
         assert roles == ["guest"]
 
-    async def test_get_user_roles_not_a_list(self):
-        with pytest.raises(HTTPException, match="Invalid authentication") as e:
-            await get_user_roles(user={"sub": "user123", "roles": "user,pro"})
-        assert e.value.status_code == 401
+    async def test_get_user_roles_as_string(self):
+        roles = await get_user_roles(user={"sub": "user123", "roles": "user,pro"})
+        assert roles == ["user", "pro"]
 
     async def test_get_user_roles_from_realm_access(self):
         payload = {"sub": "user123", "realm_access": {"roles": ["user", "guest"]}}

@@ -7,7 +7,7 @@ from arango.collection import StandardCollection
 
 from omni_python_library.clients import PENDING_UPDATES, ArangoDBClient, OpenAIClient
 from omni_python_library.dal.base.cacher import Cacher
-from omni_python_library.utils.config import LLMConstant, UserRole
+from omni_python_library.utils.config import ConfigRegistry, LLMConstant, UserRole
 from omni_python_library.utils.errors import InternalError, NotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
@@ -96,7 +96,10 @@ class ArangoOperator(Cacher):
             )
 
         logger.debug(f"User: {owner}, Roles: {roles} is updating document {id} with data: {data}")
-        data["updated_at"] = int(datetime.now(timezone.utc).timestamp())
+
+        last_updated_at = doc.get("updated_at", 0)
+        now_ts = int(datetime.now(timezone.utc).timestamp())
+        data["updated_at"] = now_ts
         data["read"] = list(set([UserRole.ADMIN] + doc.get("read", []) + data.get("read", [])))
         data["write"] = list(set([UserRole.ADMIN] + doc.get("write", []) + data.get("write", [])))
         if in_pending:
@@ -107,7 +110,8 @@ class ArangoOperator(Cacher):
         if pending:
             data = {**pending, **data}
 
-        if embedding_fields:
+        update_days_threshold = int(ConfigRegistry().get("EMBEDDING_UPDATE_DAYS"))
+        if embedding_fields and (now_ts - last_updated_at) > (update_days_threshold * 24 * 60 * 60):
             fields_to_compare = [field for field in embedding_fields if field in data]
             if fields_to_compare:
                 original_text_parts = [str(doc.get(field, "")) for field in fields_to_compare]

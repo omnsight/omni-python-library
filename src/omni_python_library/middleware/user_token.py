@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional
+import json
+from typing import List, Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException
@@ -41,6 +42,9 @@ async def get_user_roles(user: dict | None = Depends(get_current_user)) -> List[
     roles = user.get("roles")
     if roles is None:
         roles = user.get("realm_access", {}).get("roles", ["guest"])
+
+    if isinstance(roles, str):
+        roles = roles.split(",")
 
     if not isinstance(roles, list):
         raise HTTPException(status_code=401, detail="Invalid authentication")
