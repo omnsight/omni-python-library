@@ -1,3 +1,4 @@
+import os
 from omni_python_library.clients.arangodb import ArangoDBClient
 from omni_python_library.clients.openai_client import OpenAIClient
 from omni_python_library.clients.redis import RedisClient
@@ -8,7 +9,7 @@ from omni_python_library.dal.view_data_access_layer import ViewDataAccessLayer
 from omni_python_library.utils.config import ConfigRegistry, LLMConstant
 
 
-def init_omni_library() -> None:
+def init_omni_library(root_path: str = os.getcwd()) -> None:
     """
     Initializes all clients and the Data Access Layer (DAL) for the library.
 
@@ -41,6 +42,8 @@ def init_omni_library() -> None:
             that create entities (e.g., `create_person`, `create_event`), as they automatically
             generate embeddings for the stored data.
     """
+    ConfigRegistry().init(root_path)
+
     # Initialize ArangoDB Client
     ArangoDBClient().init(
         host=ConfigRegistry().get("ARANGODB_HOST"),
