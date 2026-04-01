@@ -1,3 +1,4 @@
+from omni_python_library.middleware.header_logger import AuthHeaderLoggingMiddleware
 from omni_python_library.middleware.user_token import (
     get_current_user,
     get_owner_from_token,
@@ -12,4 +13,5 @@ __all__ = [
     "get_user_roles",
     "get_user_context",
     "validate_create_permission",
+    "AuthHeaderLoggingMiddleware",
 ]
