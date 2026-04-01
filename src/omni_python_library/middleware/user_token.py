@@ -50,7 +50,9 @@ async def get_user_roles(user: dict | None = Depends(get_current_user)) -> List[
         if isinstance(user["realm_access"]["roles"], list):
             return user["realm_access"]["roles"]
         else:
-            raise HTTPException(status_code=401, detail=f"Invalid realm_access.roles in auth - {user['realm_access']['roles']}")
+            raise HTTPException(
+                status_code=401, detail=f"Invalid realm_access.roles in auth - {user['realm_access']['roles']}"
+            )
     elif "cognito:groups" in user:
         if isinstance(user["cognito:groups"], list):
             return user["cognito:groups"]
