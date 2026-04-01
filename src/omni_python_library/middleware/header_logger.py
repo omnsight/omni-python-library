@@ -1,10 +1,12 @@
 import logging
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("auth_logger")
+
 
 class AuthHeaderLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
