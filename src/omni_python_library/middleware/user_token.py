@@ -40,8 +40,11 @@ async def get_user_roles(user: dict | None = Depends(get_current_user)) -> List[
         return ["guest"]
 
     roles = user.get("roles")
-    if roles is None:
+    if not isinstance(roles, list):
         roles = user.get("realm_access", {}).get("roles", ["guest"])
+
+    if not isinstance(roles, list):
+        roles = user.get("cognito:groups", [])
 
     if isinstance(roles, str):
         roles = roles.split(",")
