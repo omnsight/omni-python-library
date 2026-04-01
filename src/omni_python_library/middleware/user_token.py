@@ -39,19 +39,25 @@ async def get_user_roles(user: dict | None = Depends(get_current_user)) -> List[
     if user is None:
         return ["guest"]
 
-    roles = user.get("roles")
-    if not isinstance(roles, list):
-        roles = user.get("realm_access", {}).get("roles", ["guest"])
-
-    if not isinstance(roles, list):
-        roles = user.get("cognito:groups", [])
-
-    if isinstance(roles, str):
-        roles = roles.split(",")
-
-    if not isinstance(roles, list):
-        raise HTTPException(status_code=401, detail="Invalid authentication")
-    return roles
+    if "roles" in user:
+        if isinstance(user["roles"], list):
+            return user["roles"]
+        elif isinstance(user["roles"], str):
+            return user["roles"].split(",")
+        else:
+            raise HTTPException(status_code=401, detail=f"Invalid roles in auth - {user['roles']}")
+    elif "realm_access" in user and "roles" in user["realm_access"]:
+        if isinstance(user["realm_access"]["roles"], list):
+            return user["realm_access"]["roles"]
+        else:
+            raise HTTPException(status_code=401, detail=f"Invalid realm_access.roles in auth - {user['realm_access']['roles']}")
+    elif "cognito:groups" in user:
+        if isinstance(user["cognito:groups"], list):
+            return user["cognito:groups"]
+        else:
+            raise HTTPException(status_code=401, detail=f"Invalid cognito:groups in auth - {user['cognito:groups']}")
+    else:
+        return ["guest"]
 
 
 async def get_user_context(
