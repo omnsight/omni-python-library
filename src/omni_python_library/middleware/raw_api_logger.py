@@ -8,10 +8,11 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 logger = logging.getLogger("fastapi_json")
 
 
-def safe_decode(headers : dict, key: str, default=b"MISSING"):
+def safe_decode(headers: dict, key: str, default=b"MISSING"):
     # Headers in ASGI are lowercase bytes
     val = headers.get(key.lower().encode(), default)
     return val.decode("utf-8", errors="replace") if isinstance(val, bytes) else str(val)
+
 
 def safe_scope_decode(scope: Scope, key: str):
     val = scope.get(key, b"")
