@@ -42,6 +42,7 @@ class RawASGILoggingMiddleware:
             logger.exception(f"{scope['method']} {scope['path']} -> 500", extra=extra_fields)
             return JSONResponse(status_code=500, content={"detail": "Internal server error"})
         else:
-            process_time = (time.perf_counter() - start_time) * 1000
-            extra_fields["process_time"] = f"{process_time:.2f}ms"
-            logger.info(f"{scope['method']} {scope['path']} -> 200", extra=extra_fields)
+            if scope["path"] != "/health":
+                process_time = (time.perf_counter() - start_time) * 1000
+                extra_fields["process_time"] = f"{process_time:.2f}ms"
+                logger.info(f"{scope['method']} {scope['path']} -> 200", extra=extra_fields)
