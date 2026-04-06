@@ -39,18 +39,17 @@ class RawASGILoggingMiddleware:
             extra_fields["path"] = scope.get("path", "UNKNOWN")
             extra_fields["host"] = safe_scope_decode(scope, "host")
             await self.app(scope, receive, send)
-        except HTTPException as e:
-            process_time = (time.perf_counter() - start_time) * 1000
-            extra_fields["process_time"] = f"{process_time:.2f}ms"
-            logger.exception(f"{scope['method']} {scope['path']} -> {e.status_code}", extra=extra_fields)
-            return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
         except Exception as e:
             process_time = (time.perf_counter() - start_time) * 1000
             extra_fields["process_time"] = f"{process_time:.2f}ms"
-            logger.exception(f"{scope['method']} {scope['path']} -> 500", extra=extra_fields)
-            return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+            logger.exception(
+                f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> 500", extra=extra_fields
+            )
+            raise e
         else:
             if scope["path"] != "/health":
                 process_time = (time.perf_counter() - start_time) * 1000
                 extra_fields["process_time"] = f"{process_time:.2f}ms"
-                logger.info(f"{scope['method']} {scope['path']} -> 200", extra=extra_fields)
+                logger.info(
+                    f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> 200", extra=extra_fields
+                )
