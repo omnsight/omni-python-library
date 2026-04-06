@@ -1,4 +1,3 @@
-import json
 import logging
 import time
 
@@ -7,6 +6,17 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger("fastapi_json")
+
+
+def safe_decode(headers: dict, key: str, default=b"MISSING"):
+    # Headers in ASGI are lowercase bytes
+    val = headers.get(key.lower().encode(), default)
+    return val.decode("utf-8", errors="replace") if isinstance(val, bytes) else str(val)
+
+
+def safe_scope_decode(scope: Scope, key: str):
+    val = scope.get(key, b"")
+    return val.decode("utf-8", errors="replace") if isinstance(val, bytes) else str(val)
 
 
 class RawASGILoggingMiddleware:
@@ -19,17 +29,16 @@ class RawASGILoggingMiddleware:
 
         start_time = time.perf_counter()
 
-        headers = dict(scope.get("headers", []))
-        extra_fields = {
-            "x-user-id": headers.get(b"x-user-id", b"MISSING").decode(),
-            "x-user-email": headers.get(b"x-user-email", b"MISSING").decode(),
-            "x-user-roles": headers.get(b"x-user-roles", b"MISSING").decode(),
-            "method": scope["method"],
-            "path": scope["path"],
-            "query_string": scope["query_string"].decode(),
-        }
-
         try:
+            headers = dict(scope.get("headers", []))
+            extra_fields = {
+                "x-user-id": safe_decode(headers, "x-user-id"),
+                "x-user-email": safe_decode(headers, "x-user-email"),
+                "x-user-roles": safe_decode(headers, "x-user-roles"),
+                "method": scope.get("method", "UNKNOWN"),
+                "path": scope.get("path", "UNKNOWN"),
+                "query_string": safe_scope_decode(scope, "query_string"),
+            }
             await self.app(scope, receive, send)
         except HTTPException as e:
             process_time = (time.perf_counter() - start_time) * 1000
