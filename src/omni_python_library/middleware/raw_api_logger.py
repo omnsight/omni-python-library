@@ -55,4 +55,7 @@ class RawASGILoggingMiddleware:
             if scope["path"] != "/health":
                 process_time = (time.perf_counter() - start_time) * 1000
                 extra_fields["process_time"] = f"{process_time:.2f}ms"
-                logger.info(f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> {extra_fields.get('code', '200')}", extra=extra_fields)
+                logger.info(
+                    f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> {extra_fields.get('code', '200')}",
+                    extra=extra_fields,
+                )
