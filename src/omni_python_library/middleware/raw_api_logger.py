@@ -28,17 +28,16 @@ class RawASGILoggingMiddleware:
             return await self.app(scope, receive, send)
 
         start_time = time.perf_counter()
+        extra_fields = {}
 
         try:
             headers = dict(scope.get("headers", []))
-            extra_fields = {
-                "x-user-id": safe_decode(headers, "x-user-id"),
-                "x-user-email": safe_decode(headers, "x-user-email"),
-                "x-user-roles": safe_decode(headers, "x-user-roles"),
-                "method": scope.get("method", "UNKNOWN"),
-                "path": scope.get("path", "UNKNOWN"),
-                "query_string": safe_scope_decode(scope, "query_string"),
-            }
+            extra_fields["x-user-id"] = safe_decode(headers, "x-user-id")
+            extra_fields["x-user-email"] = safe_decode(headers, "x-user-email")
+            extra_fields["x-user-roles"] = safe_decode(headers, "x-user-roles")
+            extra_fields["method"] = scope.get("method", "UNKNOWN")
+            extra_fields["path"] = scope.get("path", "UNKNOWN")
+            extra_fields["host"] = safe_scope_decode(scope, "host")
             await self.app(scope, receive, send)
         except HTTPException as e:
             process_time = (time.perf_counter() - start_time) * 1000
