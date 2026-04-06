@@ -1,12 +1,13 @@
-import time
 import json
 import logging
+import time
 
 from fastapi import HTTPException
-from starlette.types import ASGIApp, Scope, Receive, Send
 from starlette.responses import JSONResponse
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger("fastapi_json")
+
 
 class RawASGILoggingMiddleware:
     def __init__(self, app: ASGIApp):
