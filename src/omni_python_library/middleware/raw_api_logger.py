@@ -32,7 +32,7 @@ class RawASGILoggingMiddleware:
 
         async def send_wrapper(message: dict):
             if message["type"] == "http.response.start":
-                extra_fields["code"] = message["status"]
+                extra_fields["status_code"] = message["status"]
             await send(message)
 
         try:
@@ -47,6 +47,7 @@ class RawASGILoggingMiddleware:
         except Exception as e:
             process_time = (time.perf_counter() - start_time) * 1000
             extra_fields["process_time"] = f"{process_time:.2f}ms"
+            extra_fields["status_code"] = 500
             logger.exception(
                 f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> 500", extra=extra_fields
             )
@@ -56,6 +57,6 @@ class RawASGILoggingMiddleware:
                 process_time = (time.perf_counter() - start_time) * 1000
                 extra_fields["process_time"] = f"{process_time:.2f}ms"
                 logger.info(
-                    f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> {extra_fields.get('code', '200')}",
+                    f"{scope.get('method', 'UNKNOWN')} {scope.get('path', 'UNKNOWN')} -> {extra_fields.get('status_code', '200')}",
                     extra=extra_fields,
                 )
